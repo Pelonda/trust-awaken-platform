@@ -8,8 +8,8 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: trust_awaken
-      POSTGRES_USER: trust
-      POSTGRES_PASSWORD: trust123
+      POSTGRES_USER: trustawaken
+      POSTGRES_PASSWORD: TrustAwakenDev2026!
     ports:
       - "5432:5432"
     volumes:
