@@ -1,0 +1,28 @@
+name: trust-awaken
+
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: trust-postgres
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: trust-redis
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: trust-mailpit
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio
+    container_name: trust-minio
+    restart: unless-stopped
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: trust-meilisearch
+    restart: unless-stopped
