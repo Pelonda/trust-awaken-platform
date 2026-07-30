@@ -1,4 +1,4 @@
-# Organization Domain
+# Organization Business
 
 ## Responsibility
 
