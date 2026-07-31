@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Core\Organization\Enums\OrganizationStatus;
-use App\Core\Organization\Enums\OrganizationType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,17 +15,17 @@ return new class extends Migration
 
             $table->uuid('uuid')->unique();
 
-            $table->string('slug')->unique();
+            $table->string('slug', 150)->unique();
 
-            $table->string('display_name');
+            $table->string('display_name', 255);
 
-            $table->string('legal_name');
+            $table->string('legal_name', 255);
 
-            $table->string('organization_type')
-                ->default(OrganizationType::Company->value);
+            $table->string('organization_type', 50)
+                ->default('company');
 
-            $table->string('status')
-                ->default(OrganizationStatus::Draft->value);
+            $table->string('status', 30)
+                ->default('draft');
 
             $table->foreignId('owner_user_id')
                 ->constrained('users')
@@ -39,9 +37,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index('organization_type');
-
             $table->index('status');
-
             $table->index('owner_user_id');
         });
     }
