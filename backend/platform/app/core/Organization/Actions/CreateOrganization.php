@@ -7,7 +7,9 @@ namespace App\Core\Organization\Actions;
 use App\Core\Organization\DTOs\CreateOrganizationData;
 use App\Core\Organization\Models\Organization;
 use App\Core\Organization\Repositories\OrganizationRepositoryInterface;
-use Illuminate\Support\Str;
+use App\Core\Organization\ValueObjects\OrganizationName;
+use App\Core\Organization\ValueObjects\OrganizationSlug;
+use App\Core\Organization\ValueObjects\OrganizationUuid;
 
 final readonly class CreateOrganization
 {
@@ -21,10 +23,10 @@ final readonly class CreateOrganization
         int $ownerUserId,
     ): Organization {
         $organization = Organization::register(
-            uuid: (string) Str::uuid(),
-            slug: Str::slug($data->displayName),
-            displayName: $data->displayName,
-            legalName: $data->legalName,
+            uuid: OrganizationUuid::generate(),
+            slug: OrganizationSlug::fromDisplayName($data->displayName),
+            displayName: OrganizationName::fromString($data->displayName),
+            legalName: OrganizationName::fromString($data->legalName),
             organizationType: $data->organizationType,
             ownerUserId: $ownerUserId,
         );
