@@ -6,6 +6,7 @@ namespace App\Presentation\Api\Organization\Controllers;
 
 use App\Core\Organization\Actions\CreateOrganization;
 use App\Core\Organization\DTOs\CreateOrganizationData;
+use App\Core\Organization\Repositories\OrganizationRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Presentation\Api\Organization\Requests\StoreOrganizationRequest;
 use App\Presentation\Api\Organization\Resources\OrganizationResource;
@@ -20,6 +21,7 @@ final class OrganizationController extends Controller
 
     public function __construct(
         private readonly CreateOrganization $createOrganization,
+        private readonly OrganizationRepositoryInterface $organizations,
     ) {
     }
 
@@ -37,5 +39,20 @@ final class OrganizationController extends Controller
         return (new OrganizationResource($organization))
             ->response()
             ->setStatusCode(201);
+    }
+
+    public function show(string $uuid): JsonResponse
+    {
+        $organization = $this->organizations->findByUuid($uuid);
+
+        if ($organization === null) {
+            return response()->json([
+                'message' => 'Organization not found.',
+            ], 404);
+        }
+
+        return (new OrganizationResource($organization))
+            ->response()
+            ->setStatusCode(200);
     }
 }
