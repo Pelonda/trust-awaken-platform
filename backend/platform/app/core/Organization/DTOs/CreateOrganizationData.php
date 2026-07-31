@@ -7,13 +7,9 @@ namespace App\Core\Organization\DTOs;
 final readonly class CreateOrganizationData
 {
     public function __construct(
-        public string $uuid,
-        public string $slug,
         public string $displayName,
         public string $legalName,
         public string $organizationType,
-        public string $status,
-        public int $ownerUserId,
     ) {
     }
 }

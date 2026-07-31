@@ -9,7 +9,15 @@ use App\Core\Organization\DTOs\CreateOrganizationData;
 
 interface OrganizationRepositoryInterface
 {
-    public function create(CreateOrganizationData $data): Organization;
+    public function create(
+    string $uuid,
+    string $slug,
+    string $displayName,
+    string $legalName,
+    string $organizationType,
+    string $status,
+    int $ownerUserId,
+): Organization;
 
     public function update(Organization $organization, array $attributes): Organization;
 

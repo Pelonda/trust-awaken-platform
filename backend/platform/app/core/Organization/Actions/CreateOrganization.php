@@ -7,6 +7,7 @@ namespace App\Core\Organization\Actions;
 use App\Core\Organization\DTOs\CreateOrganizationData;
 use App\Core\Organization\Models\Organization;
 use App\Core\Organization\Repositories\OrganizationRepositoryInterface;
+use Illuminate\Support\Str;
 
 final readonly class CreateOrganization
 {
@@ -15,8 +16,18 @@ final readonly class CreateOrganization
     ) {
     }
 
-    public function execute(CreateOrganizationData $data): Organization
-    {
-        return $this->repository->create($data);
+    public function execute(
+        CreateOrganizationData $data,
+        int $ownerUserId,
+    ): Organization {
+        return $this->repository->create(
+            uuid: (string) Str::uuid(),
+            slug: Str::slug($data->displayName),
+            displayName: $data->displayName,
+            legalName: $data->legalName,
+            organizationType: $data->organizationType,
+            status: 'draft',
+            ownerUserId: $ownerUserId,
+        );
     }
 }
