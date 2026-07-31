@@ -8,28 +8,18 @@ use App\Core\Organization\Models\Organization;
 
 final class EloquentOrganizationRepository implements OrganizationRepositoryInterface
 {
-    public function save(Organization $organization): Organization
+    public function create(array $data): Organization
     {
-        $organization->save();
-
-        return $organization->refresh();
+        return Organization::create($data);
     }
 
-    public function update(Organization $organization, array $attributes): Organization
-    {
-        $organization->update($attributes);
+    public function update(
+        Organization $organization,
+        array $data
+    ): Organization {
+        $organization->update($data);
 
-        return $organization->refresh();
-    }
-
-    public function delete(Organization $organization): void
-    {
-        $organization->delete();
-    }
-
-    public function findById(int $id): ?Organization
-    {
-        return Organization::find($id);
+        return $organization;
     }
 
     public function findByUuid(string $uuid): ?Organization
@@ -44,24 +34,5 @@ final class EloquentOrganizationRepository implements OrganizationRepositoryInte
         return Organization::query()
             ->where('slug', $slug)
             ->first();
-    }
-
-    public function paginate(int $perPage = 15)
-    {
-        return Organization::query()
-            ->orderBy('display_name')
-            ->paginate($perPage);
-    }
-
-    public function findTrashedByUuid(string $uuid): ?Organization
-    {
-        return Organization::onlyTrashed()
-            ->where('uuid', $uuid)
-            ->first();
-    }
-
-    public function restore(Organization $organization): void
-    {
-        $organization->restore();
     }
 }
