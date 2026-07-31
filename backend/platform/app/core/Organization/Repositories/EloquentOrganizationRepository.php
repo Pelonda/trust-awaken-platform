@@ -8,24 +8,11 @@ use App\Core\Organization\Models\Organization;
 
 final class EloquentOrganizationRepository implements OrganizationRepositoryInterface
 {
-    public function create(
-        string $uuid,
-        string $slug,
-        string $displayName,
-        string $legalName,
-        string $organizationType,
-        string $status,
-        int $ownerUserId,
-    ): Organization {
-        return Organization::create([
-            'uuid' => $uuid,
-            'slug' => $slug,
-            'display_name' => $displayName,
-            'legal_name' => $legalName,
-            'organization_type' => $organizationType,
-            'status' => $status,
-            'owner_user_id' => $ownerUserId,
-        ]);
+    public function save(Organization $organization): Organization
+    {
+        $organization->save();
+
+        return $organization->refresh();
     }
 
     public function update(Organization $organization, array $attributes): Organization

@@ -14,4 +14,26 @@ final class Organization extends Model
     protected $table = 'organizations';
 
     protected $guarded = [];
+
+    /**
+     * Register a new Organization aggregate.
+     */
+    public static function register(
+        string $uuid,
+        string $slug,
+        string $displayName,
+        string $legalName,
+        string $organizationType,
+        int $ownerUserId,
+    ): self {
+        return new self([
+            'uuid' => $uuid,
+            'slug' => $slug,
+            'display_name' => $displayName,
+            'legal_name' => $legalName,
+            'organization_type' => $organizationType,
+            'status' => 'draft',
+            'owner_user_id' => $ownerUserId,
+        ]);
+    }
 }

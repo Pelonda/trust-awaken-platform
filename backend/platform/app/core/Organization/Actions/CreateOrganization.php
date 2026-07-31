@@ -20,14 +20,15 @@ final readonly class CreateOrganization
         CreateOrganizationData $data,
         int $ownerUserId,
     ): Organization {
-        return $this->repository->create(
+        $organization = Organization::register(
             uuid: (string) Str::uuid(),
             slug: Str::slug($data->displayName),
             displayName: $data->displayName,
             legalName: $data->legalName,
             organizationType: $data->organizationType,
-            status: 'draft',
             ownerUserId: $ownerUserId,
         );
+
+        return $this->repository->save($organization);
     }
 }
