@@ -2,8 +2,30 @@
 
 declare(strict_types=1);
 
+use App\Presentation\Api\Identity\Controllers\IdentityController;
 use App\Presentation\Api\Organization\Controllers\OrganizationController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Identity API
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1/identity')->group(function (): void {
+
+    Route::post(
+        'users',
+        [IdentityController::class, 'store']
+    );
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| Platform API
+|--------------------------------------------------------------------------
+*/
 
 Route::prefix('v1/platform')->group(function (): void {
 
