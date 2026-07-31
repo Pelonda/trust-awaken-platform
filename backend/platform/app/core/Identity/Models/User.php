@@ -6,7 +6,7 @@ namespace App\Core\Identity\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class IdentityUser extends Model
+final class User extends Model
 {
     //
 }
