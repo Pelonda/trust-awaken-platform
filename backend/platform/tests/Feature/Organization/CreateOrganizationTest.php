@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Organization;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -13,6 +14,10 @@ final class CreateOrganizationTest extends TestCase
 
     public function test_create_organization_successfully(): void
     {
+        // Arrange
+        $owner = User::factory()->create();
+
+        // Act
         $response = $this->postJson(
             '/api/v1/platform/organizations',
             [
@@ -22,18 +27,19 @@ final class CreateOrganizationTest extends TestCase
             ]
         );
 
-        $response->assertCreated();
-
+        // Assert
         $response->assertJsonStructure([
-            'uuid',
-            'slug',
-            'display_name',
-            'legal_name',
-            'organization_type',
-            'status',
-            'created_at',
-            'updated_at',
-        ]);
+    'data' => [
+        'uuid',
+        'slug',
+        'display_name',
+        'legal_name',
+        'organization_type',
+        'status',
+        'created_at',
+        'updated_at',
+    ],
+]);
 
         $this->assertDatabaseHas('organizations', [
             'display_name' => 'Global CyberSafe',

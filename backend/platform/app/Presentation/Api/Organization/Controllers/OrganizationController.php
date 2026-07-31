@@ -6,13 +6,18 @@ namespace App\Presentation\Api\Organization\Controllers;
 
 use App\Core\Organization\Actions\CreateOrganization;
 use App\Core\Organization\DTOs\CreateOrganizationData;
+use App\Http\Controllers\Controller;
 use App\Presentation\Api\Organization\Requests\StoreOrganizationRequest;
 use App\Presentation\Api\Organization\Resources\OrganizationResource;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
 final class OrganizationController extends Controller
 {
+    /**
+     * Temporary owner until the Identity module is implemented.
+     */
+    private const TEMP_OWNER_ID = 1;
+
     public function __construct(
         private readonly CreateOrganization $createOrganization,
     ) {
@@ -26,7 +31,7 @@ final class OrganizationController extends Controller
                 legalName: $request->string('legal_name')->toString(),
                 organizationType: $request->string('organization_type')->toString(),
             ),
-            ownerUserId: 1, // Temporary until authentication is implemented
+            ownerUserId: self::TEMP_OWNER_ID,
         );
 
         return (new OrganizationResource($organization))
