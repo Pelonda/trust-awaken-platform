@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/platform')->group(function (): void {
 
+    Route::get(
+        'organizations',
+        [OrganizationController::class, 'index']
+    );
+
     Route::post(
         'organizations',
         [OrganizationController::class, 'store']

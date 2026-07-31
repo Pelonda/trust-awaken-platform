@@ -20,4 +20,5 @@ interface OrganizationRepositoryInterface
     public function findByUuid(string $uuid): ?Organization;
 
     public function findBySlug(string $slug): ?Organization;
+    public function paginate(int $perPage = 15);
 }

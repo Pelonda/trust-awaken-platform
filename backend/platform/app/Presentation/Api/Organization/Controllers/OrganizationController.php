@@ -25,6 +25,13 @@ final class OrganizationController extends Controller
     ) {
     }
 
+    public function index(): JsonResponse
+    {
+        return OrganizationResource::collection(
+            $this->organizations->paginate()
+        )->response();
+    }
+
     public function store(StoreOrganizationRequest $request): JsonResponse
     {
         $organization = $this->createOrganization->execute(

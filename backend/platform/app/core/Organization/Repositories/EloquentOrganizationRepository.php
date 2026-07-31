@@ -45,4 +45,11 @@ final class EloquentOrganizationRepository implements OrganizationRepositoryInte
             ->where('slug', $slug)
             ->first();
     }
+
+    public function paginate(int $perPage = 15)
+    {
+        return Organization::query()
+            ->orderBy('display_name')
+            ->paginate($perPage);
+    }
 }
