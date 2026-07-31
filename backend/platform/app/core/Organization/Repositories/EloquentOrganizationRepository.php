@@ -4,13 +4,22 @@ declare(strict_types=1);
 
 namespace App\Core\Organization\Repositories;
 
+use App\Core\Organization\DTOs\CreateOrganizationData;
 use App\Core\Organization\Models\Organization;
 
 final class EloquentOrganizationRepository implements OrganizationRepositoryInterface
 {
-    public function create(array $attributes): Organization
+    public function create(CreateOrganizationData $data): Organization
     {
-        return Organization::create($attributes);
+    return Organization::create([
+        'uuid' => $data->uuid,
+        'slug' => $data->slug,
+        'display_name' => $data->displayName,
+        'legal_name' => $data->legalName,
+        'organization_type' => $data->organizationType,
+        'status' => $data->status,
+        'owner_user_id' => $data->ownerUserId,
+    ]);
     }
 
     public function update(Organization $organization, array $attributes): Organization
