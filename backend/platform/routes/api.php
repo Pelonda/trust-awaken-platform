@@ -22,4 +22,14 @@ Route::prefix('v1/platform')->group(function (): void {
         [OrganizationController::class, 'show']
     );
 
+    Route::put(
+        'organizations/{uuid}',
+        [OrganizationController::class, 'update']
+    );
+
+    Route::delete(
+        'organizations/{uuid}',
+        [OrganizationController::class, 'destroy']
+    );
+
 });

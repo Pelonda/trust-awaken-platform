@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace App\Presentation\Api\Organization\Controllers;
 
+use App\Core\Organization\Actions\ArchiveOrganization;
 use App\Core\Organization\Actions\CreateOrganization;
+use App\Core\Organization\Actions\UpdateOrganization;
 use App\Core\Organization\DTOs\CreateOrganizationData;
+use App\Core\Organization\DTOs\UpdateOrganizationData;
 use App\Core\Organization\Repositories\OrganizationRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Presentation\Api\Organization\Requests\StoreOrganizationRequest;
+use App\Presentation\Api\Organization\Requests\UpdateOrganizationRequest;
 use App\Presentation\Api\Organization\Resources\OrganizationResource;
 use Illuminate\Http\JsonResponse;
+use RuntimeException;
 
 final class OrganizationController extends Controller
 {
@@ -21,6 +26,8 @@ final class OrganizationController extends Controller
 
     public function __construct(
         private readonly CreateOrganization $createOrganization,
+        private readonly UpdateOrganization $updateOrganization,
+        private readonly ArchiveOrganization $archiveOrganization,
         private readonly OrganizationRepositoryInterface $organizations,
     ) {
     }
@@ -30,6 +37,21 @@ final class OrganizationController extends Controller
         return OrganizationResource::collection(
             $this->organizations->paginate()
         )->response();
+    }
+
+    public function show(string $uuid): JsonResponse
+    {
+        $organization = $this->organizations->findByUuid($uuid);
+
+        if ($organization === null) {
+            return response()->json([
+                'message' => 'Organization not found.',
+            ], 404);
+        }
+
+        return (new OrganizationResource($organization))
+            ->response()
+            ->setStatusCode(200);
     }
 
     public function store(StoreOrganizationRequest $request): JsonResponse
@@ -48,11 +70,20 @@ final class OrganizationController extends Controller
             ->setStatusCode(201);
     }
 
-    public function show(string $uuid): JsonResponse
-    {
-        $organization = $this->organizations->findByUuid($uuid);
-
-        if ($organization === null) {
+    public function update(
+        UpdateOrganizationRequest $request,
+        string $uuid,
+    ): JsonResponse {
+        try {
+            $organization = $this->updateOrganization->execute(
+                uuid: $uuid,
+                data: new UpdateOrganizationData(
+                    displayName: $request->string('display_name')->toString(),
+                    legalName: $request->string('legal_name')->toString(),
+                    organizationType: $request->string('organization_type')->toString(),
+                ),
+            );
+        } catch (RuntimeException) {
             return response()->json([
                 'message' => 'Organization not found.',
             ], 404);
@@ -61,5 +92,18 @@ final class OrganizationController extends Controller
         return (new OrganizationResource($organization))
             ->response()
             ->setStatusCode(200);
+    }
+
+    public function destroy(string $uuid): JsonResponse
+    {
+        try {
+            $this->archiveOrganization->execute($uuid);
+        } catch (RuntimeException) {
+            return response()->json([
+                'message' => 'Organization not found.',
+            ], 404);
+        }
+
+        return response()->json([], 204);
     }
 }
