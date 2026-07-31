@@ -52,4 +52,16 @@ final class EloquentOrganizationRepository implements OrganizationRepositoryInte
             ->orderBy('display_name')
             ->paginate($perPage);
     }
+
+    public function findTrashedByUuid(string $uuid): ?Organization
+    {
+        return Organization::onlyTrashed()
+            ->where('uuid', $uuid)
+            ->first();
+    }
+
+    public function restore(Organization $organization): void
+    {
+        $organization->restore();
+    }
 }

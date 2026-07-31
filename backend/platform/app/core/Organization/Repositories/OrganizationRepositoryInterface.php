@@ -21,4 +21,7 @@ interface OrganizationRepositoryInterface
 
     public function findBySlug(string $slug): ?Organization;
     public function paginate(int $perPage = 15);
+    public function findTrashedByUuid(string $uuid): ?Organization;
+
+    public function restore(Organization $organization): void;
 }

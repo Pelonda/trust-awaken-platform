@@ -9,11 +9,11 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-final class ArchiveOrganizationTest extends TestCase
+final class RestoreOrganizationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_archive_existing_organization(): void
+    public function test_restore_archived_organization(): void
     {
         // Arrange
         User::factory()->create([
@@ -30,27 +30,32 @@ final class ArchiveOrganizationTest extends TestCase
             'owner_user_id' => 1,
         ]);
 
-        // Act
-        $response = $this->deleteJson(
-            "/api/v1/platform/organizations/{$organization->uuid}"
-        );
-
-        // Assert
-        $response->assertNoContent();
+        $organization->delete();
 
         $this->assertSoftDeleted('organizations', [
             'uuid' => $organization->uuid,
         ]);
-    }
 
-    public function test_archive_unknown_organization_returns_404(): void
-    {
         // Act
-        $response = $this->deleteJson(
-            '/api/v1/platform/organizations/99999999-9999-9999-9999-999999999999'
+        $response = $this->postJson(
+            "/api/v1/platform/organizations/{$organization->uuid}/restore"
         );
 
         // Assert
+        $response->assertOk();
+
+        $this->assertDatabaseHas('organizations', [
+            'uuid' => $organization->uuid,
+            'deleted_at' => null,
+        ]);
+    }
+
+    public function test_restore_unknown_organization_returns_404(): void
+    {
+        $response = $this->postJson(
+            '/api/v1/platform/organizations/99999999-9999-9999-9999-999999999999/restore'
+        );
+
         $response->assertNotFound();
     }
 }

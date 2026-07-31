@@ -32,4 +32,9 @@ Route::prefix('v1/platform')->group(function (): void {
         [OrganizationController::class, 'destroy']
     );
 
+    Route::post(
+        'organizations/{uuid}/restore',
+        [OrganizationController::class, 'restore']
+    );
+
 });

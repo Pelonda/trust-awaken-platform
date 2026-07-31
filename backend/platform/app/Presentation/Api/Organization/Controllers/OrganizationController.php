@@ -16,6 +16,7 @@ use App\Presentation\Api\Organization\Requests\UpdateOrganizationRequest;
 use App\Presentation\Api\Organization\Resources\OrganizationResource;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
+use App\Core\Organization\Actions\RestoreOrganization;
 
 final class OrganizationController extends Controller
 {
@@ -29,6 +30,7 @@ final class OrganizationController extends Controller
         private readonly UpdateOrganization $updateOrganization,
         private readonly ArchiveOrganization $archiveOrganization,
         private readonly OrganizationRepositoryInterface $organizations,
+        private readonly RestoreOrganization $restoreOrganization,
     ) {
     }
 
@@ -106,4 +108,20 @@ final class OrganizationController extends Controller
 
         return response()->json([], 204);
     }
+
+    public function restore(string $uuid): JsonResponse
+{
+    try {
+        $organization = $this->restoreOrganization->execute($uuid);
+    } catch (RuntimeException) {
+        return response()->json([
+            'message' => 'Organization not found.',
+        ], 404);
+    }
+
+    return (new OrganizationResource($organization))
+        ->response()
+        ->setStatusCode(200);
+}
+    
 }
