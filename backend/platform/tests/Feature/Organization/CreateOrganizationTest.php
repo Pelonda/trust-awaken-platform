@@ -26,6 +26,8 @@ final class CreateOrganizationTest extends TestCase
                 'organization_type' => 'nonprofit',
             ]
         );
+        
+        $response->dump();
 
         // Assert
         $response->assertJsonStructure([

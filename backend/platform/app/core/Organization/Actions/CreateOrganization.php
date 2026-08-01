@@ -17,15 +17,16 @@ final readonly class CreateOrganization
 
     public function execute(
         CreateOrganizationData $data,
+        int $ownerUserId,
     ): Organization {
-        return $this->repository->create([
-            'uuid' => (string) \Illuminate\Support\Str::uuid(),
-            'slug' => \Illuminate\Support\Str::slug($data->displayName),
-            'display_name' => $data->displayName,
-            'legal_name' => $data->legalName,
-            'organization_type' => $data->organizationType,
-            'owner_user_id' => $data->ownerUserId,
-            'status' => 'draft',
-        ]);
+
+        $organization = new CreateOrganizationData(
+            displayName: $data->displayName,
+            legalName: $data->legalName,
+            organizationType: $data->organizationType,
+            ownerUserId: $ownerUserId,
+        );
+
+        return $this->repository->create($organization);
     }
 }
