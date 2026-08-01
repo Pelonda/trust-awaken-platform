@@ -16,11 +16,12 @@ final class DeactivateUserTest extends TestCase
     {
         // Arrange
         $user = User::query()->create([
-            'uuid' => '11111111-1111-1111-1111-111111111111',
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => bcrypt('Password123!'),
-            'is_active' => true,
+            'uuid'       => '11111111-1111-1111-1111-111111111111',
+            'name'       => 'John Doe',
+            'email'      => 'john@example.com',
+            'password'   => bcrypt('Password123!'),
+            'user_type'  => 'organization',
+            'status'     => 'active',
         ]);
 
         // Act
@@ -32,12 +33,12 @@ final class DeactivateUserTest extends TestCase
         $response->assertOk();
 
         $response->assertJsonFragment([
-            'is_active' => false,
+            'status' => 'suspended',
         ]);
 
         $this->assertDatabaseHas('users', [
-            'uuid' => $user->uuid,
-            'is_active' => false,
+            'uuid'   => $user->uuid,
+            'status' => 'suspended',
         ]);
     }
 

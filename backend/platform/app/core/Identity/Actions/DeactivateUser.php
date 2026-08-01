@@ -26,7 +26,7 @@ final readonly class DeactivateUser
         return $this->repository->update(
             $user,
             [
-                'is_active' => false,
+                'status' => 'suspended',
             ]
         );
     }
