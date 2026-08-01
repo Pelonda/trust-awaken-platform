@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Identity\Repositories;
 
-use App\Core\Identity\Models\User;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface UserRepositoryInterface

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Identity\Actions;
 
-use App\Core\Identity\Models\User;
+use App\Models\User;
 use App\Core\Identity\Repositories\UserRepositoryInterface;
 use RuntimeException;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Identity;
 
-use App\Core\Identity\Models\User;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

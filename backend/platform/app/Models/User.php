@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,10 +13,21 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     use HasFactory;
-    use HasUuids;
     use Notifiable;
     use SoftDeletes;
 
+    /**
+     * The primary key is the auto-increment BIGINT "id".
+     */
+    protected $primaryKey = 'id';
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
+
+    /**
+     * Mass assignable attributes.
+     */
     protected $fillable = [
         'uuid',
         'name',
@@ -28,11 +38,17 @@ class User extends Authenticatable
         'last_login_at',
     ];
 
+    /**
+     * Hidden attributes.
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    /**
+     * Attribute casting.
+     */
     protected function casts(): array
     {
         return [
@@ -53,13 +69,13 @@ class User extends Authenticatable
         string $password,
     ): self {
         return new self([
-            'uuid'           => $uuid,
-            'name'           => $name,
-            'email'          => $email,
-            'password'       => $password,
-            'user_type'      => 'organization',
-            'status'         => 'active',
-            'last_login_at'  => null,
+            'uuid'          => $uuid,
+            'name'          => $name,
+            'email'         => $email,
+            'password'      => $password,
+            'user_type'     => 'organization',
+            'status'        => 'active',
+            'last_login_at' => null,
         ]);
     }
 }
