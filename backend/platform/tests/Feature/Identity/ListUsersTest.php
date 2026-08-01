@@ -16,19 +16,21 @@ final class ListUsersTest extends TestCase
     {
         // Arrange
         User::query()->create([
-            'uuid' => '11111111-1111-1111-1111-111111111111',
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => bcrypt('Password123!'),
-            'is_active' => true,
+            'uuid'      => '11111111-1111-1111-1111-111111111111',
+            'name'      => 'John Doe',
+            'email'     => 'john@example.com',
+            'password'  => bcrypt('Password123!'),
+            'user_type' => 'organization',
+            'status'    => 'active',
         ]);
 
         User::query()->create([
-            'uuid' => '22222222-2222-2222-2222-222222222222',
-            'name' => 'Jane Doe',
-            'email' => 'jane@example.com',
-            'password' => bcrypt('Password123!'),
-            'is_active' => true,
+            'uuid'      => '22222222-2222-2222-2222-222222222222',
+            'name'      => 'Jane Doe',
+            'email'     => 'jane@example.com',
+            'password'  => bcrypt('Password123!'),
+            'user_type' => 'organization',
+            'status'    => 'active',
         ]);
 
         // Act
@@ -43,8 +45,10 @@ final class ListUsersTest extends TestCase
                     'uuid',
                     'name',
                     'email',
-                    'is_active',
+                    'user_type',
+                    'status',
                     'email_verified_at',
+                    'last_login_at',
                     'created_at',
                     'updated_at',
                 ],

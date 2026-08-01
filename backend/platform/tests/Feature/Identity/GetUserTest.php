@@ -16,11 +16,12 @@ final class GetUserTest extends TestCase
     {
         // Arrange
         $user = User::query()->create([
-            'uuid' => '11111111-1111-1111-1111-111111111111',
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => bcrypt('Password123!'),
-            'is_active' => true,
+            'uuid'      => '11111111-1111-1111-1111-111111111111',
+            'name'      => 'John Doe',
+            'email'     => 'john@example.com',
+            'password'  => bcrypt('Password123!'),
+            'user_type' => 'organization',
+            'status'    => 'active',
         ]);
 
         // Act
@@ -36,16 +37,20 @@ final class GetUserTest extends TestCase
                 'uuid',
                 'name',
                 'email',
-                'is_active',
+                'user_type',
+                'status',
                 'email_verified_at',
+                'last_login_at',
                 'created_at',
                 'updated_at',
             ],
         ]);
 
         $response->assertJsonFragment([
-            'uuid' => '11111111-1111-1111-1111-111111111111',
-            'name' => 'John Doe',
+            'uuid'      => '11111111-1111-1111-1111-111111111111',
+            'name'      => 'John Doe',
+            'user_type' => 'organization',
+            'status'    => 'active',
         ]);
     }
 
