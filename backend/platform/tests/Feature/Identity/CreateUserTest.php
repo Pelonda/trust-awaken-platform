@@ -13,7 +13,6 @@ final class CreateUserTest extends TestCase
 
     public function test_create_user_successfully(): void
     {
-        // Act
         $response = $this->postJson(
             '/api/v1/identity/users',
             [
@@ -24,7 +23,6 @@ final class CreateUserTest extends TestCase
             ]
         );
 
-        // Assert
         $response->assertCreated();
 
         $response->assertJsonStructure([
@@ -32,7 +30,8 @@ final class CreateUserTest extends TestCase
                 'uuid',
                 'name',
                 'email',
-                'is_active',
+                'user_type',
+                'status',
                 'email_verified_at',
                 'created_at',
                 'updated_at',
@@ -42,7 +41,8 @@ final class CreateUserTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'john@example.com',
             'name' => 'John Doe',
-            'is_active' => true,
+            'status' => 'active',
+            'user_type' => 'organization',
         ]);
     }
 }

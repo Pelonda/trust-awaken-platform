@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Core\Identity\Repositories;
 
-use App\Core\Identity\Models\User;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-final class EloquentUserRepository implements UserRepositoryInterface
+final readonly class EloquentUserRepository implements UserRepositoryInterface
 {
     public function save(User $user): User
     {
@@ -35,7 +35,7 @@ final class EloquentUserRepository implements UserRepositoryInterface
 
     public function findById(int $id): ?User
     {
-        return User::find($id);
+        return User::query()->find($id);
     }
 
     public function findByUuid(string $uuid): ?User
