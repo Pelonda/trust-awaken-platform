@@ -21,33 +21,35 @@ final class CreateOrganizationTest extends TestCase
         $response = $this->postJson(
             '/api/v1/platform/organizations',
             [
-                'display_name' => 'Global CyberSafe',
-                'legal_name' => 'Global CyberSafe Foundation',
+                'display_name'      => 'Global CyberSafe',
+                'legal_name'        => 'Global CyberSafe Foundation',
                 'organization_type' => 'nonprofit',
+                'owner_user_id'     => $owner->id,
             ]
         );
-        
-        $response->dump();
 
         // Assert
+        $response->assertCreated();
+
         $response->assertJsonStructure([
-    'data' => [
-        'uuid',
-        'slug',
-        'display_name',
-        'legal_name',
-        'organization_type',
-        'status',
-        'created_at',
-        'updated_at',
-    ],
-]);
+            'data' => [
+                'uuid',
+                'slug',
+                'display_name',
+                'legal_name',
+                'organization_type',
+                'status',
+                'created_at',
+                'updated_at',
+            ],
+        ]);
 
         $this->assertDatabaseHas('organizations', [
-            'display_name' => 'Global CyberSafe',
-            'legal_name' => 'Global CyberSafe Foundation',
+            'display_name'      => 'Global CyberSafe',
+            'legal_name'        => 'Global CyberSafe Foundation',
             'organization_type' => 'nonprofit',
-            'status' => 'draft',
+            'owner_user_id'     => $owner->id,
+            'status'            => 'draft',
         ]);
     }
 }

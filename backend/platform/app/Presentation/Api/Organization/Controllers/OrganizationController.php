@@ -59,13 +59,13 @@ final class OrganizationController extends Controller
     public function store(StoreOrganizationRequest $request): JsonResponse
     {
         $organization = $this->createOrganization->execute(
-            data: new CreateOrganizationData(
-                displayName: $request->string('display_name')->toString(),
-                legalName: $request->string('legal_name')->toString(),
-                organizationType: $request->string('organization_type')->toString(),
-            ),
-            ownerUserId: self::TEMP_OWNER_ID,
-        );
+    data: new CreateOrganizationData(
+        displayName: $request->string('display_name')->toString(),
+        legalName: $request->string('legal_name')->toString(),
+        organizationType: $request->string('organization_type')->toString(),
+    ),
+    ownerUserId: (int) $request->input('owner_user_id'),
+);
 
         return (new OrganizationResource($organization))
             ->response()
