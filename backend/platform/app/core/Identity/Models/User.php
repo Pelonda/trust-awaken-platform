@@ -11,7 +11,7 @@ final class User extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'identity_users';
+    protected $table = 'users';
 
     protected $guarded = [];
 

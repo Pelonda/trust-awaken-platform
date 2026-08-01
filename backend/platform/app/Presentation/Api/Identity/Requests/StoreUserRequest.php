@@ -29,7 +29,7 @@ final class StoreUserRequest extends FormRequest
                 'required',
                 'email',
                 'max:255',
-                'unique:identity_users,email',
+                'unique:users,email',
             ],
 
             'password' => [

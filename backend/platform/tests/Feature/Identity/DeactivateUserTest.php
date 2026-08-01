@@ -35,7 +35,7 @@ final class DeactivateUserTest extends TestCase
             'is_active' => false,
         ]);
 
-        $this->assertDatabaseHas('identity_users', [
+        $this->assertDatabaseHas('users', [
             'uuid' => $user->uuid,
             'is_active' => false,
         ]);

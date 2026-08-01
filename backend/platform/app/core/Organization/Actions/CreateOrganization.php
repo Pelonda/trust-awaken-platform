@@ -7,9 +7,6 @@ namespace App\Core\Organization\Actions;
 use App\Core\Organization\DTOs\CreateOrganizationData;
 use App\Core\Organization\Models\Organization;
 use App\Core\Organization\Repositories\OrganizationRepositoryInterface;
-use App\Core\Organization\ValueObjects\OrganizationName;
-use App\Core\Organization\ValueObjects\OrganizationSlug;
-use App\Core\Organization\ValueObjects\OrganizationUuid;
 
 final readonly class CreateOrganization
 {
@@ -20,17 +17,15 @@ final readonly class CreateOrganization
 
     public function execute(
         CreateOrganizationData $data,
-        int $ownerUserId,
     ): Organization {
-        $organization = Organization::register(
-            uuid: OrganizationUuid::generate(),
-            slug: OrganizationSlug::fromDisplayName($data->displayName),
-            displayName: OrganizationName::fromString($data->displayName),
-            legalName: OrganizationName::fromString($data->legalName),
-            organizationType: $data->organizationType,
-            ownerUserId: $ownerUserId,
-        );
-
-        return $this->repository->save($organization);
+        return $this->repository->create([
+            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'slug' => \Illuminate\Support\Str::slug($data->displayName),
+            'display_name' => $data->displayName,
+            'legal_name' => $data->legalName,
+            'organization_type' => $data->organizationType,
+            'owner_user_id' => $data->ownerUserId,
+            'status' => 'draft',
+        ]);
     }
 }

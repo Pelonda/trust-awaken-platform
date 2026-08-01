@@ -40,7 +40,7 @@ final class UpdateUserTest extends TestCase
             'email' => 'john.smith@example.com',
         ]);
 
-        $this->assertDatabaseHas('identity_users', [
+        $this->assertDatabaseHas('users', [
             'uuid' => $user->uuid,
             'name' => 'John Smith',
             'email' => 'john.smith@example.com',

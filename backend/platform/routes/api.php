@@ -2,81 +2,27 @@
 
 declare(strict_types=1);
 
-use App\Presentation\Api\Identity\Controllers\IdentityController;
-use App\Presentation\Api\Organization\Controllers\OrganizationController;
-use Illuminate\Support\Facades\Route;
-
 /*
 |--------------------------------------------------------------------------
-| Identity API
+| Trust AWAKEN API
 |--------------------------------------------------------------------------
+|
+| This file only bootstraps the module route files.
+| Each module owns its own routes.
+|
 */
 
-Route::prefix('v1/identity')->group(function (): void {
+require __DIR__ . '/api/public.php';
+require __DIR__ . '/api/identity.php';
+require __DIR__ . '/api/organization.php';
 
-    Route::get(
-        'users',
-        [IdentityController::class, 'index']
-    );
-
-    Route::post(
-        'users',
-        [IdentityController::class, 'store']
-    );
-
-    Route::get(
-        'users/{uuid}',
-        [IdentityController::class, 'show']
-    );
-
-    Route::put(
-        'users/{uuid}',
-        [IdentityController::class, 'update']
-    );
-
-    Route::post(
-        'users/{uuid}/deactivate',
-        [IdentityController::class, 'deactivate']
-    );
-
-});
-
-/*
-|--------------------------------------------------------------------------
-| Platform API
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('v1/platform')->group(function (): void {
-
-    Route::get(
-        'organizations',
-        [OrganizationController::class, 'index']
-    );
-
-    Route::post(
-        'organizations',
-        [OrganizationController::class, 'store']
-    );
-
-    Route::get(
-        'organizations/{uuid}',
-        [OrganizationController::class, 'show']
-    );
-
-    Route::put(
-        'organizations/{uuid}',
-        [OrganizationController::class, 'update']
-    );
-
-    Route::delete(
-        'organizations/{uuid}',
-        [OrganizationController::class, 'destroy']
-    );
-
-    Route::post(
-        'organizations/{uuid}/restore',
-        [OrganizationController::class, 'restore']
-    );
-
-});
+// Future Modules
+// require __DIR__ . '/api/billing.php';
+// require __DIR__ . '/api/document.php';
+// require __DIR__ . '/api/template.php';
+// require __DIR__ . '/api/workshop.php';
+// require __DIR__ . '/api/participant.php';
+// require __DIR__ . '/api/certificate.php';
+// require __DIR__ . '/api/verification.php';
+// require __DIR__ . '/api/reporting.php';
+// require __DIR__ . '/api/marketplace.php';

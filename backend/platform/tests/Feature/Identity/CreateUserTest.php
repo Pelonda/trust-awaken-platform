@@ -39,7 +39,7 @@ final class CreateUserTest extends TestCase
             ],
         ]);
 
-        $this->assertDatabaseHas('identity_users', [
+        $this->assertDatabaseHas('users', [
             'email' => 'john@example.com',
             'name' => 'John Doe',
             'is_active' => true,

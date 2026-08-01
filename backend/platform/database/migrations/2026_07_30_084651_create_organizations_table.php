@@ -12,46 +12,86 @@ return new class extends Migration
     {
         Schema::create('organizations', function (Blueprint $table): void {
 
-            // Primary Key
+            /*
+            |--------------------------------------------------------------------------
+            | Primary Identity
+            |--------------------------------------------------------------------------
+            */
+
             $table->id();
 
-            // Public Identifier
             $table->uuid('uuid')->unique();
 
-            // Public URL
             $table->string('slug', 100)->unique();
 
-            // Display
+            /*
+            |--------------------------------------------------------------------------
+            | Organization Identity
+            |--------------------------------------------------------------------------
+            */
+
             $table->string('display_name', 200);
 
-            $table->string('legal_name', 255);
+            $table->string('legal_name', 255)->nullable();
 
-            // Classification
             $table->string('organization_type', 50)
-                  ->default('company');
+                ->default('company');
 
-            // Lifecycle
             $table->string('status', 30)
-                  ->default('draft');
+                ->default('draft');
 
-            // Owner
+            /*
+            |--------------------------------------------------------------------------
+            | Ownership
+            |--------------------------------------------------------------------------
+            */
+
             $table->foreignId('owner_user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->cascadeOnUpdate()
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->cascadeOnUpdate()
+                ->nullOnDelete();
 
-            // Audit
+            /*
+            |--------------------------------------------------------------------------
+            | Lifecycle
+            |--------------------------------------------------------------------------
+            */
+
+            $table->timestamp('activated_at')->nullable();
+
+            $table->timestamp('archived_at')->nullable();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Audit
+            |--------------------------------------------------------------------------
+            */
+
             $table->timestamps();
 
             $table->softDeletes();
 
-            // Indexes
+            /*
+            |--------------------------------------------------------------------------
+            | Indexes
+            |--------------------------------------------------------------------------
+            */
+
+            $table->index('uuid');
+
+            $table->index('slug');
+
             $table->index('organization_type');
 
             $table->index('status');
 
             $table->index('owner_user_id');
+
+            $table->index([
+                'status',
+                'organization_type',
+            ]);
         });
     }
 
