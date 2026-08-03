@@ -226,4 +226,19 @@ Route::prefix('v1/credential-templates')->group(function (): void {
         [CredentialTemplateController::class, 'show']
     );
 
+    Route::put(
+        '{uuid}',
+        [CredentialTemplateController::class, 'update']
+    );
+
+    Route::delete(
+        '{uuid}',
+        [CredentialTemplateController::class, 'destroy']
+    );
+
+    Route::post(
+        '{uuid}/restore',
+        [CredentialTemplateController::class, 'restore']
+    );
+
 });

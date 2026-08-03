@@ -11,12 +11,21 @@ use App\Http\Controllers\Controller;
 use App\Presentation\Api\CredentialTemplate\Requests\StoreCredentialTemplateRequest;
 use App\Presentation\Api\CredentialTemplate\Resources\CredentialTemplateResource;
 use Illuminate\Http\JsonResponse;
+use App\Core\CredentialTemplate\Actions\UpdateCredentialTemplate;
+use App\Core\CredentialTemplate\DTOs\UpdateCredentialTemplateData;
+use App\Presentation\Api\CredentialTemplate\Requests\UpdateCredentialTemplateRequest;
+use RuntimeException;
+use App\Core\CredentialTemplate\Actions\ArchiveCredentialTemplate;
+use App\Core\CredentialTemplate\Actions\RestoreCredentialTemplate;
 
 final class CredentialTemplateController extends Controller
 {
     public function __construct(
         private readonly CreateCredentialTemplate $createCredentialTemplate,
         private readonly CredentialTemplateRepositoryInterface $repository,
+        private readonly UpdateCredentialTemplate $updateCredentialTemplate,
+        private readonly ArchiveCredentialTemplate $archiveCredentialTemplate,
+        private readonly RestoreCredentialTemplate $restoreCredentialTemplate,
     ) {
     }
 
@@ -64,4 +73,71 @@ final class CredentialTemplateController extends Controller
             ->response()
             ->setStatusCode(201);
     }
+
+    public function update(
+    UpdateCredentialTemplateRequest $request,
+    string $uuid,
+): JsonResponse {
+
+    try {
+
+        $template = $this->updateCredentialTemplate->execute(
+            uuid: $uuid,
+            data: new UpdateCredentialTemplateData(
+                name: $request->string('name')->toString(),
+                paperSize: $request->string('paper_size')->toString(),
+                orientation: $request->string('orientation')->toString(),
+                isDefault: $request->boolean('is_default'),
+            )
+        );
+
+    } catch (RuntimeException) {
+
+        return response()->json([
+            'message' => 'Credential template not found.',
+        ], 404);
+
+    }
+
+    return (new CredentialTemplateResource($template))
+        ->response()
+        ->setStatusCode(200);
+}
+
+public function destroy(string $uuid): JsonResponse
+{
+    try {
+
+        $this->archiveCredentialTemplate->execute($uuid);
+
+    } catch (RuntimeException) {
+
+        return response()->json([
+            'message' => 'Credential template not found.',
+        ], 404);
+
+    }
+
+    return response()->json([], 204);
+}
+
+public function restore(string $uuid): JsonResponse
+{
+    try {
+
+        $template = $this->restoreCredentialTemplate->execute($uuid);
+
+    } catch (RuntimeException) {
+
+        return response()->json([
+            'message' => 'Credential template not found.',
+        ], 404);
+
+    }
+
+    return (new CredentialTemplateResource($template))
+        ->response()
+        ->setStatusCode(200);
+}
+
 }
