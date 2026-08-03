@@ -15,6 +15,10 @@ use App\Core\Participant\Repositories\ParticipantRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
 use App\Core\Session\Repositories\EloquentSessionRepository;
 use App\Core\Session\Repositories\SessionRepositoryInterface;
+use App\Core\Attendance\Repositories\AttendanceRepositoryInterface;
+use App\Core\Attendance\Repositories\EloquentAttendanceRepository;
+use App\Core\CredentialTemplate\Repositories\CredentialTemplateRepositoryInterface;
+use App\Core\CredentialTemplate\Repositories\EloquentCredentialTemplateRepository;
 
 final class AppServiceProvider extends ServiceProvider
 {
@@ -44,6 +48,17 @@ $this->app->bind(
     SessionRepositoryInterface::class,
     EloquentSessionRepository::class,
 );
+
+$this->app->bind(
+    AttendanceRepositoryInterface::class,
+    EloquentAttendanceRepository::class,
+);
+
+$this->app->bind(
+    CredentialTemplateRepositoryInterface::class,
+    EloquentCredentialTemplateRepository::class,
+);
+
     }
 
     public function boot(): void

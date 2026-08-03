@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Presentation\Api\Program\Controllers\ProgramController;
 use App\Presentation\Api\Participant\Controllers\ParticipantController;
 use App\Presentation\Api\Session\Controllers\SessionController;
+use App\Presentation\Api\Attendance\Controllers\AttendanceController;
+use App\Presentation\Api\CredentialTemplate\Controllers\CredentialTemplateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -128,5 +130,100 @@ Route::prefix('v1/sessions')->group(function (): void {
     '{uuid}',
     [SessionController::class, 'show']
 );
+
+Route::get(
+    '',
+    [SessionController::class, 'index']
+);
+
+Route::post(
+    '',
+    [SessionController::class, 'store']
+);
+
+Route::get(
+    '{uuid}',
+    [SessionController::class, 'show']
+);
+
+Route::put(
+    '{uuid}',
+    [SessionController::class, 'update']
+);
+
+Route::delete(
+    '{uuid}',
+    [SessionController::class, 'destroy']
+);
+
+Route::post(
+    '{uuid}/restore',
+    [SessionController::class, 'restore']
+);
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| Attendance API
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1/attendance')->group(function (): void {
+
+    Route::get(
+        '',
+        [AttendanceController::class, 'index']
+    );
+
+    Route::post(
+        '',
+        [AttendanceController::class, 'store']
+    );
+
+    Route::get(
+        '{uuid}',
+        [AttendanceController::class, 'show']
+    );
+
+    Route::put(
+        '{uuid}',
+        [AttendanceController::class, 'update']
+    );
+
+    Route::delete(
+        '{uuid}',
+        [AttendanceController::class, 'destroy']
+    );
+
+    Route::post(
+    '{uuid}/restore',
+    [AttendanceController::class, 'restore']
+);
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| Credential Template API
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1/credential-templates')->group(function (): void {
+
+    Route::get(
+        '',
+        [CredentialTemplateController::class, 'index']
+    );
+
+    Route::post(
+        '',
+        [CredentialTemplateController::class, 'store']
+    );
+
+    Route::get(
+        '{uuid}',
+        [CredentialTemplateController::class, 'show']
+    );
 
 });
