@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Presentation\Api\Public\Controllers;
 
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 
 final class RegistrationController extends Controller
 {
     public function register(): JsonResponse
     {
         return response()->json([
-            'message' => 'Registration endpoint ready.',
-        ], 200);
+            'message' => 'Registration workflow not implemented yet.',
+        ], 501);
     }
 }
