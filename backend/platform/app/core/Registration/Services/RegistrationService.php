@@ -2,39 +2,52 @@
 
 declare(strict_types=1);
 
-namespace App\Presentation\Api\Public\Controllers;
+namespace App\Core\Registration\Services;
 
-use App\Core\Registration\Actions\RegisterOrganization;
+use App\Core\Identity\Actions\CreateUser;
+use App\Core\Identity\DTOs\CreateUserData;
+use App\Core\Organization\Actions\CreateOrganization;
+use App\Core\Organization\DTOs\CreateOrganizationData;
 use App\Core\Registration\DTOs\RegisterOrganizationData;
-use App\Http\Controllers\Controller;
-use App\Presentation\Api\Public\Requests\RegisterOrganizationRequest;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
-final class RegistrationController extends Controller
+final readonly class RegistrationService
 {
     public function __construct(
-        private readonly RegisterOrganization $registerOrganization,
+        private CreateUser $createUser,
+        private CreateOrganization $createOrganization,
     ) {
     }
 
     public function register(
-        RegisterOrganizationRequest $request,
-    ): JsonResponse {
+        RegisterOrganizationData $data,
+    ): array {
 
-        $result = $this->registerOrganization->execute(
-            new RegisterOrganizationData(
-                organizationName: $request->string('organization_name')->toString(),
-                legalName: $request->string('legal_name')->toString(),
-                organizationType: $request->string('organization_type')->toString(),
-                ownerName: $request->string('owner_name')->toString(),
-                ownerEmail: $request->string('owner_email')->toString(),
-                password: $request->string('password')->toString(),
-            )
-        );
+        return DB::transaction(function () use ($data): array {
 
-        return response()->json(
-            $result,
-            201
-        );
+            $user = $this->createUser->execute(
+                new CreateUserData(
+                    name: $data->ownerName,
+                    email: $data->ownerEmail,
+                    password: $data->password,
+                )
+            );
+
+            $organization = $this->createOrganization->execute(
+                data: new CreateOrganizationData(
+                    displayName: $data->organizationName,
+                    legalName: $data->legalName,
+                    organizationType: $data->organizationType,
+                ),
+                ownerUserId: $user->id,
+            );
+
+            return [
+            'message' => 'Registration completed successfully.',
+            'user_uuid' => $user->uuid,
+            'organization_uuid' => $organization->uuid,
+            'token' => $user->createToken('registration')->plainTextToken,
+            ];
+        });
     }
 }
