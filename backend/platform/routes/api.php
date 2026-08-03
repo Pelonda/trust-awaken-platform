@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Presentation\Api\Program\Controllers\ProgramController;
+use App\Presentation\Api\Participant\Controllers\ParticipantController;
+use App\Presentation\Api\Session\Controllers\SessionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,6 +67,66 @@ Route::delete(
 Route::post(
     '{uuid}/restore',
     [ProgramController::class, 'restore']
+);
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| Participant API
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1/participants')->group(function (): void {
+
+    Route::post(
+        '',
+        [ParticipantController::class, 'store']
+    );
+
+    Route::get(
+    '{uuid}',
+    [ParticipantController::class, 'show']
+);
+
+Route::get(
+    '',
+    [ParticipantController::class, 'index']
+);
+
+Route::put(
+    '{uuid}',
+    [ParticipantController::class, 'update']
+);
+
+Route::delete(
+    '{uuid}',
+    [ParticipantController::class, 'destroy']
+);
+
+Route::post(
+    '{uuid}/restore',
+    [ParticipantController::class, 'restore']
+);
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| Session API
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1/sessions')->group(function (): void {
+
+    Route::post(
+        '',
+        [SessionController::class, 'store']
+    );
+
+    Route::get(
+    '{uuid}',
+    [SessionController::class, 'show']
 );
 
 });
