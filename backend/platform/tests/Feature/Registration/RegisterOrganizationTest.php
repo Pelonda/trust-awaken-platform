@@ -48,5 +48,10 @@ final class RegisterOrganizationTest extends TestCase
         $this->assertDatabaseHas('organizations', [
             'display_name' => 'Global CyberSafe',
         ]);
+
+        $this->assertDatabaseCount('users', 1);
+
+$this->assertDatabaseCount('organizations', 1);
+        
     }
 }

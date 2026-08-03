@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Presentation\Api\Program\Controllers\ProgramController;
+
 /*
 |--------------------------------------------------------------------------
 | Trust AWAKEN API
@@ -26,3 +28,43 @@ require __DIR__ . '/api/organization.php';
 // require __DIR__ . '/api/verification.php';
 // require __DIR__ . '/api/reporting.php';
 // require __DIR__ . '/api/marketplace.php';
+
+/*
+|--------------------------------------------------------------------------
+| Program API
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1/programs')->group(function (): void {
+
+    Route::post(
+        '',
+        [ProgramController::class, 'store']
+    );
+
+    Route::get(
+    '{uuid}',
+    [ProgramController::class, 'show']
+);
+
+    Route::get(
+    '',
+    [ProgramController::class, 'index']
+);
+
+Route::put(
+    '{uuid}',
+    [ProgramController::class, 'update']
+);
+
+Route::delete(
+    '{uuid}',
+    [ProgramController::class, 'destroy']
+);
+
+Route::post(
+    '{uuid}/restore',
+    [ProgramController::class, 'restore']
+);
+
+});

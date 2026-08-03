@@ -42,12 +42,13 @@ final readonly class RegistrationService
                 ownerUserId: $user->id,
             );
 
-            return [
-            'message' => 'Registration completed successfully.',
-            'user_uuid' => $user->uuid,
-            'organization_uuid' => $organization->uuid,
-            'token' => $user->createToken('registration')->plainTextToken,
-            ];
+    
+    return [
+        'message' => 'Registration completed successfully.',
+        'user_uuid' => $user->uuid,
+        'organization_uuid' => $organization->uuid,
+        'token' => $user->createToken('registration')->plainTextToken,
+    ];
         });
     }
 }
