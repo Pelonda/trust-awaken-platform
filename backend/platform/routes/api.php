@@ -7,6 +7,8 @@ use App\Presentation\Api\Participant\Controllers\ParticipantController;
 use App\Presentation\Api\Session\Controllers\SessionController;
 use App\Presentation\Api\Attendance\Controllers\AttendanceController;
 use App\Presentation\Api\CredentialTemplate\Controllers\CredentialTemplateController;
+use App\Presentation\Api\Credential\Controllers\CredentialController;
+use App\Presentation\Api\Verification\Controllers\VerificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -242,3 +244,54 @@ Route::prefix('v1/credential-templates')->group(function (): void {
     );
 
 });
+
+/*
+|--------------------------------------------------------------------------
+| Credential API
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1/credentials')->group(function (): void {
+
+    Route::get(
+        '',
+        [CredentialController::class, 'index']
+    );
+
+    Route::post(
+        '',
+        [CredentialController::class, 'store']
+    );
+
+    Route::get(
+        '{uuid}',
+        [CredentialController::class, 'show']
+    );
+
+    Route::put(
+        '{uuid}',
+        [CredentialController::class, 'update']
+    );
+
+    Route::post(
+    '{uuid}/revoke',
+    [CredentialController::class, 'revoke']
+);
+
+Route::post(
+    '{uuid}/restore',
+    [CredentialController::class, 'restore']
+);
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| Public Verification API
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    'v1/verify/{verificationCode}',
+    [VerificationController::class, 'verify']
+);

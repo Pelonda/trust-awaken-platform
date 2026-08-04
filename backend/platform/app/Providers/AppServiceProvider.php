@@ -19,6 +19,10 @@ use App\Core\Attendance\Repositories\AttendanceRepositoryInterface;
 use App\Core\Attendance\Repositories\EloquentAttendanceRepository;
 use App\Core\CredentialTemplate\Repositories\CredentialTemplateRepositoryInterface;
 use App\Core\CredentialTemplate\Repositories\EloquentCredentialTemplateRepository;
+use App\Core\Credential\Repositories\CredentialRepositoryInterface;
+use App\Core\Credential\Repositories\EloquentCredentialRepository;
+use App\Core\Verification\Repositories\CredentialVerificationRepositoryInterface;
+use App\Core\Verification\Repositories\EloquentCredentialVerificationRepository;
 
 final class AppServiceProvider extends ServiceProvider
 {
@@ -57,6 +61,16 @@ $this->app->bind(
 $this->app->bind(
     CredentialTemplateRepositoryInterface::class,
     EloquentCredentialTemplateRepository::class,
+);
+
+$this->app->bind(
+    CredentialRepositoryInterface::class,
+    EloquentCredentialRepository::class,
+);
+
+$this->app->bind(
+    CredentialVerificationRepositoryInterface::class,
+    EloquentCredentialVerificationRepository::class,
 );
 
     }
