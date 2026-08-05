@@ -9,6 +9,8 @@ use App\Presentation\Api\Attendance\Controllers\AttendanceController;
 use App\Presentation\Api\CredentialTemplate\Controllers\CredentialTemplateController;
 use App\Presentation\Api\Credential\Controllers\CredentialController;
 use App\Presentation\Api\Verification\Controllers\VerificationController;
+use App\Presentation\Api\Dashboard\Controllers\DashboardController;
+use App\Presentation\Api\Dashboard\Controllers\DashboardActivityController;
 
 /*
 |--------------------------------------------------------------------------
@@ -295,3 +297,38 @@ Route::get(
     'v1/verify/{verificationCode}',
     [VerificationController::class, 'verify']
 );
+
+/*
+|--------------------------------------------------------------------------
+| Dashboard API
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1/dashboard')->group(function (): void {
+
+    Route::get(
+        'overview',
+        [DashboardController::class, 'overview']
+    );
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| Dashboard API
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('v1/dashboard')->group(function (): void {
+
+    Route::get(
+        'overview',
+        [DashboardController::class, 'overview']
+    );
+
+    Route::get(
+        'recent-activity',
+        [DashboardActivityController::class, 'index']
+    );
+
+});
