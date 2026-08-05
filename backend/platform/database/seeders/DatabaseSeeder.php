@@ -25,6 +25,8 @@ final class DatabaseSeeder extends Seeder
             AttendanceSeeder::class,
             CredentialTemplateSeeder::class,
             CredentialSeeder::class,
+            RoleSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

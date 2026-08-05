@@ -26,6 +26,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import ProfileMenu from '../common/ProfileMenu'
 
 
 import { useState } from 'react'
@@ -121,41 +122,7 @@ export default function DashboardLayout() {
         }}
       >
         <Toolbar>
-
-          <Box
-            sx={{
-              flexGrow: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              mr: 3,
-            }}
-          >
-
-            <Box>
-
-              <Typography
-                variant="h6"
-                fontWeight={700}
-              >
-                Trust AWAKEN
-              </Typography>
-
-              <Typography
-                variant="caption"
-                color="text.secondary"
-              >
-                Global CyberSafe
-              </Typography>
-
-            </Box>
-
-            <GlobalSearch
-              value={search}
-              onChange={setSearch}
-            />
-
-          </Box>
+<ProfileMenu />
 
           <IconButton
             onClick={() =>

@@ -9,7 +9,7 @@ export async function login(
   payload: LoginPayload,
 ) {
   const { data } = await api.post(
-    '/login',
+    '/identity/login',
     payload,
   )
 
@@ -17,11 +17,11 @@ export async function login(
 }
 
 export async function logout() {
-  await api.post('/logout')
+  await api.post('/identity/logout')
 }
 
 export async function me() {
-  const { data } = await api.get('/me')
+  const { data } = await api.get('/identity/me')
 
   return data
 }

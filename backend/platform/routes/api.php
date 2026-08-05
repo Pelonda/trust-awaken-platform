@@ -11,6 +11,7 @@ use App\Presentation\Api\Credential\Controllers\CredentialController;
 use App\Presentation\Api\Verification\Controllers\VerificationController;
 use App\Presentation\Api\Dashboard\Controllers\DashboardController;
 use App\Presentation\Api\Dashboard\Controllers\DashboardActivityController;
+use App\Presentation\Api\Auth\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -332,19 +333,3 @@ Route::prefix('v1/dashboard')->group(function (): void {
     );
 
 });
-
-
-Route::post(
-    'login',
-    [AuthController::class, 'login']
-);
-
-Route::post(
-    'logout',
-    [AuthController::class, 'logout']
-)->middleware('auth:sanctum');
-
-Route::get(
-    'me',
-    [AuthController::class, 'me']
-)->middleware('auth:sanctum');

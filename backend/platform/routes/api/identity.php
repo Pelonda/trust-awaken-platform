@@ -2,19 +2,44 @@
 
 declare(strict_types=1);
 
+use App\Presentation\Api\Auth\Controllers\AuthController;
 use App\Presentation\Api\Identity\Controllers\IdentityController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Identity API
+| Identity & Authentication API
 |--------------------------------------------------------------------------
-|
-| Authentication and Identity Management.
-|
 */
 
 Route::prefix('v1/identity')->group(function (): void {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post(
+        'login',
+        [AuthController::class, 'login']
+    );
+
+    Route::post(
+        'logout',
+        [AuthController::class, 'logout']
+    )->middleware('auth:sanctum');
+
+    Route::get(
+        'me',
+        [AuthController::class, 'me']
+    )->middleware('auth:sanctum');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Users
+    |--------------------------------------------------------------------------
+    */
 
     Route::get(
         'users',
