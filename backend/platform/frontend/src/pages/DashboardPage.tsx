@@ -1,15 +1,21 @@
 import { Grid } from '@mui/material'
 
+import BusinessIcon from '@mui/icons-material/Business'
 import SchoolIcon from '@mui/icons-material/School'
 import PeopleIcon from '@mui/icons-material/People'
 import EventIcon from '@mui/icons-material/Event'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium'
-import BusinessIcon from '@mui/icons-material/Business'
-import DashboardChart from '../components/common/DashboardChart'
-import RecentActivity from '../components/common/RecentActivity'
 
 import StatCard from '../components/common/StatCard'
+import DashboardChart from '../components/common/DashboardChart'
+import RecentActivity from '../components/common/RecentActivity'
+import QuickActions from '../components/common/QuickActions'
+import UpcomingSessions from '../components/common/UpcomingSessions'
+import OrganizationSummary from '../components/common/OrganizationSummary'
+import LatestParticipants from '../components/common/LatestParticipants'
+import LatestCredentials from '../components/common/LatestCredentials'
+import ActivityTimeline from '../components/common/ActivityTimeline'
 
 import { useDashboard } from '../hooks/useDashboard'
 
@@ -43,14 +49,6 @@ export default function DashboardPage() {
           change="+4%"
         />
       </Grid>
-
-      <Grid size={{ xs: 12, lg: 8 }}>
-  <DashboardChart />
-</Grid>
-
-<Grid size={{ xs: 12, lg: 4 }}>
-  <RecentActivity />
-</Grid>
 
       <Grid size={{ xs: 12, md: 4 }}>
         <StatCard
@@ -90,6 +88,38 @@ export default function DashboardPage() {
           color="#ef4444"
           change="+6%"
         />
+      </Grid>
+
+      <Grid size={{ xs: 12, lg: 8 }}>
+        <DashboardChart />
+      </Grid>
+
+      <Grid size={{ xs: 12, lg: 4 }}>
+        <RecentActivity />
+      </Grid>
+
+      <Grid size={{ xs: 12 }}>
+        <QuickActions />
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <UpcomingSessions />
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <OrganizationSummary />
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <LatestParticipants />
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <LatestCredentials />
+      </Grid>
+
+      <Grid size={{ xs: 12 }}>
+        <ActivityTimeline />
       </Grid>
 
     </Grid>

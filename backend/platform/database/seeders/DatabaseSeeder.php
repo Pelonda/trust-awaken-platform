@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class DatabaseSeeder extends Seeder
+final class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
@@ -14,15 +15,16 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-{
-    $this->call([
-        OrganizationSeeder::class,
-        ProgramSeeder::class,
-        ParticipantSeeder::class,
-        SessionSeeder::class,
-        AttendanceSeeder::class,
-        CredentialTemplateSeeder::class,
-        CredentialSeeder::class,
-    ]);
-}
+    {
+        $this->call([
+            OrganizationSeeder::class,
+            UserSeeder::class,
+            ProgramSeeder::class,
+            ParticipantSeeder::class,
+            SessionSeeder::class,
+            AttendanceSeeder::class,
+            CredentialTemplateSeeder::class,
+            CredentialSeeder::class,
+        ]);
+    }
 }
