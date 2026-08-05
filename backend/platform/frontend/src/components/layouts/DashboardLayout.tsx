@@ -25,91 +25,132 @@ import BusinessIcon from '@mui/icons-material/Business'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import ProfileMenu from '../common/ProfileMenu'
-
 
 import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 
+import { useAuth } from '../../context/AuthContext'
+
 import BreadcrumbsBar from '../common/BreadcrumbsBar'
 import GlobalSearch from '../common/GlobalSearch'
 import NotificationDrawer from '../common/NotificationDrawer'
+import ProfileMenu from '../common/ProfileMenu'
 
 const drawerWidth = 270
 
 export default function DashboardLayout() {
+
   const navigate = useNavigate()
+
   const location = useLocation()
 
+  const { hasPermission } = useAuth()
+
   const [search, setSearch] = useState('')
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
+
+  const [notificationsOpen, setNotificationsOpen] =
+    useState(false)
 
   const menu = [
+
     {
       group: 'Overview',
+
       items: [
+
         {
           title: 'Dashboard',
           icon: <DashboardIcon />,
           url: '/dashboard',
+          permission: 'dashboard.view',
         },
+
       ],
+
     },
+
     {
       group: 'Training',
+
       items: [
+
         {
           title: 'Programs',
           icon: <SchoolIcon />,
           url: '/programs',
+          permission: 'program.view',
         },
-        {
-          title: 'Sessions',
-          icon: <EventIcon />,
-          url: '/sessions',
-        },
+
         {
           title: 'Participants',
           icon: <PeopleIcon />,
           url: '/participants',
+          permission: 'participant.view',
         },
+
+        {
+          title: 'Sessions',
+          icon: <EventIcon />,
+          url: '/sessions',
+          permission: 'session.view',
+        },
+
       ],
+
     },
+
     {
       group: 'Operations',
+
       items: [
+
         {
           title: 'Attendance',
           icon: <FactCheckIcon />,
           url: '/attendance',
+          permission: 'attendance.view',
         },
+
         {
           title: 'Credentials',
           icon: <WorkspacePremiumIcon />,
           url: '/credentials',
+          permission: 'credential.view',
         },
+
       ],
+
     },
+
     {
       group: 'Administration',
+
       items: [
+
         {
           title: 'Organizations',
           icon: <BusinessIcon />,
           url: '#',
+          permission: 'organization.view',
         },
+
         {
           title: 'Users',
           icon: <AdminPanelSettingsIcon />,
           url: '#',
+          permission: 'user.view',
         },
+
       ],
+
     },
+
   ]
 
   return (
+
     <Box sx={{ display: 'flex' }}>
+
       <CssBaseline />
 
       <AppBar
@@ -121,75 +162,64 @@ export default function DashboardLayout() {
           zIndex: 1300,
         }}
       >
+
         <Toolbar>
-<ProfileMenu />
-
-          <IconButton
-            onClick={() =>
-              setNotificationsOpen(true)
-            }
-          >
-            <Badge
-              badgeContent={3}
-              color="error"
-            >
-              <NotificationsNoneIcon />
-            </Badge>
-          </IconButton>
-
-          <IconButton sx={{ ml: 1 }}>
-            <DarkModeOutlinedIcon />
-          </IconButton>
 
           <Box
             sx={{
+              flexGrow: 1,
               display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
-              ml: 3,
-              px: 1,
-              py: 0.5,
-              borderRadius: 2,
-              cursor: 'pointer',
-
-              '&:hover': {
-                backgroundColor: '#f3f4f6',
-              },
+              mr: 3,
             }}
           >
-
-            <Avatar
-              sx={{
-                width: 34,
-                height: 34,
-                mr: 1.5,
-              }}
-            >
-              A
-            </Avatar>
 
             <Box>
 
               <Typography
-                fontWeight={600}
-                lineHeight={1.2}
+                variant="h6"
+                fontWeight={700}
               >
-                Administrator
+                Trust AWAKEN
               </Typography>
 
               <Typography
                 variant="caption"
                 color="text.secondary"
               >
-                administrator@awaken.org
+                Global CyberSafe Academy
               </Typography>
 
             </Box>
 
-            <KeyboardArrowDownIcon
-              sx={{ ml: 1 }}
+            <GlobalSearch
+              value={search}
+              onChange={setSearch}
             />
 
           </Box>
+
+          <IconButton
+            onClick={() =>
+              setNotificationsOpen(true)
+            }
+          >
+
+            <Badge
+              badgeContent={3}
+              color="error"
+            >
+              <NotificationsNoneIcon />
+            </Badge>
+
+          </IconButton>
+
+          <IconButton sx={{ ml: 1 }}>
+            <DarkModeOutlinedIcon />
+          </IconButton>
+
+          <ProfileMenu />
 
         </Toolbar>
 
@@ -205,64 +235,78 @@ export default function DashboardLayout() {
             boxSizing: 'border-box',
             borderRight: '1px solid #e5e7eb',
           },
+
         }}
       >
 
         <Toolbar />
 
-        {menu.map((section) => (
+        {menu.map((section) => {
 
-          <Box key={section.group}>
+          const visibleItems =
+            section.items.filter((item) =>
+              hasPermission(item.permission)
+            )
 
-            <Typography
-              sx={{
-                px: 3,
-                pt: 3,
-                pb: 1,
-                fontSize: 12,
-                fontWeight: 700,
-                color: 'text.secondary',
-                textTransform: 'uppercase',
-              }}
-            >
-              {section.group}
-            </Typography>
+          if (visibleItems.length === 0) {
+            return null
+          }
 
-            <List dense>
+          return (
 
-              {section.items.map((item) => (
+            <Box key={section.group}>
 
-                <ListItemButton
-                  key={item.title}
-                  selected={
-                    location.pathname === item.url
-                  }
-                  onClick={() =>
-                    item.url !== '#'
-                      ? navigate(item.url)
-                      : undefined
-                  }
-                >
+              <Typography
+                sx={{
+                  px: 3,
+                  pt: 3,
+                  pb: 1,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: 'text.secondary',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {section.group}
+              </Typography>
 
-                  <ListItemIcon>
-                    {item.icon}
-                  </ListItemIcon>
+              <List dense>
 
-                  <ListItemText
-                    primary={item.title}
-                  />
+                {visibleItems.map((item) => (
 
-                </ListItemButton>
+                  <ListItemButton
+                    key={item.title}
+                    selected={
+                      location.pathname === item.url
+                    }
+                    onClick={() =>
+                      item.url !== '#'
+                        ? navigate(item.url)
+                        : undefined
+                    }
+                  >
 
-              ))}
+                    <ListItemIcon>
+                      {item.icon}
+                    </ListItemIcon>
 
-            </List>
+                    <ListItemText
+                      primary={item.title}
+                    />
 
-            <Divider sx={{ mt: 1 }} />
+                  </ListItemButton>
 
-          </Box>
+                ))}
 
-        ))}
+              </List>
+
+              <Divider sx={{ mt: 1 }} />
+
+            </Box>
+
+          )
+
+        })}
 
       </Drawer>
 
@@ -292,5 +336,7 @@ export default function DashboardLayout() {
       />
 
     </Box>
+
   )
+
 }

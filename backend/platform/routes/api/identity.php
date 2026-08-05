@@ -67,3 +67,27 @@ Route::prefix('v1/identity')->group(function (): void {
     );
 
 });
+
+Route::get(
+    'role-test',
+    function () {
+        return response()->json([
+            'message' => 'Role Middleware Working',
+        ]);
+    }
+)->middleware([
+    'auth:sanctum',
+    'role:super_admin',
+]);
+
+Route::get(
+    'permission-test',
+    function () {
+        return response()->json([
+            'message' => 'Permission Middleware Working',
+        ]);
+    }
+)->middleware([
+    'auth:sanctum',
+    'permission:dashboard.view',
+]);

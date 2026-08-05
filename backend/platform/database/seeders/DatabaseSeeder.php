@@ -15,18 +15,20 @@ final class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-    {
-        $this->call([
-            OrganizationSeeder::class,
-            UserSeeder::class,
-            ProgramSeeder::class,
-            ParticipantSeeder::class,
-            SessionSeeder::class,
-            AttendanceSeeder::class,
-            CredentialTemplateSeeder::class,
-            CredentialSeeder::class,
-            RoleSeeder::class,
-            UserSeeder::class,
-        ]);
-    }
+{
+    $this->call([
+        OrganizationSeeder::class,
+        UserSeeder::class,
+        RoleSeeder::class,
+        PermissionSeeder::class,
+        RolePermissionSeeder::class,
+        UserRoleSeeder::class,
+        ProgramSeeder::class,
+        ParticipantSeeder::class,
+        SessionSeeder::class,
+        AttendanceSeeder::class,
+        CredentialTemplateSeeder::class,
+        CredentialSeeder::class,
+    ]);
+}
 }
