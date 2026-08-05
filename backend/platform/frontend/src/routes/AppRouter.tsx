@@ -1,26 +1,28 @@
 import { Route, Routes } from 'react-router-dom'
 
-import DashboardLayout from '../layouts/DashboardLayout'
+import DashboardLayout from '../components/layouts/DashboardLayout'
 
-import CreateProgramPage from '../pages/CreateProgramPage'
-import DashboardPage from '../pages/DashboardPage'
-import EditProgramPage from '../pages/EditProgramPage'
 import LoginPage from '../pages/LoginPage'
-import ParticipantsPage from '../pages/ParticipantsPage'
-import ProgramsPage from '../pages/ProgramsPage'
-import SessionsPage from '../pages/SessionsPage'
-import AttendancePage from '../pages/AttendancePage'
-import CredentialsPage from '../pages/CredentialsPage'
+import DashboardPage from '../pages/DashboardPage'
+
+import { ProgramsPage } from '../features/programs'
+import { ParticipantsPage } from '../features/participants'
+import { SessionsPage } from '../features/sessions'
+import { AttendancePage } from '../features/attendance'
+import { CredentialsPage } from '../features/credentials'
+import { VerificationPage } from '../features/verification'
 
 export default function AppRouter() {
   return (
     <Routes>
+
       <Route
         path="/"
         element={<LoginPage />}
       />
 
       <Route element={<DashboardLayout />}>
+
         <Route
           path="/dashboard"
           element={<DashboardPage />}
@@ -29,16 +31,6 @@ export default function AppRouter() {
         <Route
           path="/programs"
           element={<ProgramsPage />}
-        />
-
-        <Route
-          path="/programs/create"
-          element={<CreateProgramPage />}
-        />
-
-        <Route
-          path="/programs/:uuid/edit"
-          element={<EditProgramPage />}
         />
 
         <Route
@@ -60,7 +52,14 @@ export default function AppRouter() {
           path="/credentials"
           element={<CredentialsPage />}
         />
+
       </Route>
+
+      <Route
+        path="/verify"
+        element={<VerificationPage />}
+      />
+
     </Routes>
   )
 }

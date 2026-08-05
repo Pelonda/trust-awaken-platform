@@ -7,7 +7,7 @@ import {
 
 import { useNavigate } from 'react-router-dom'
 
-import AuthLayout from '../layouts/AuthLayout'
+import AuthLayout from '../components/layouts/AuthLayout'
 
 export default function LoginPage() {
   const navigate = useNavigate()

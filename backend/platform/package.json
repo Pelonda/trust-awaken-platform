@@ -17,6 +17,7 @@
         "@mui/lab": "^9.0.0-beta.6",
         "@mui/x-data-grid": "^9.10.1",
         "framer-motion": "^12.43.0",
-        "react-icons": "^5.7.0"
+        "react-icons": "^5.7.0",
+        "recharts": "^3.10.1"
     }
 }
