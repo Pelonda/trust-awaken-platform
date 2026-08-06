@@ -60,7 +60,6 @@ export default function PageContainer({
             variant="contained"
             startIcon={<AddIcon />}
             onClick={onAdd}
-            size="large"
           >
             {buttonText}
           </Button>

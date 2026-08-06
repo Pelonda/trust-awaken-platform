@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Presentation\Api\Auth\Controllers\AuthController;
 use App\Presentation\Api\Identity\Controllers\IdentityController;
+use App\Presentation\Api\Identity\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -41,53 +42,45 @@ Route::prefix('v1/identity')->group(function (): void {
     |--------------------------------------------------------------------------
     */
 
-    Route::get(
+    Route::middleware([
+        'auth:sanctum',
+        'permission:user.view',
+    ])->group(function (): void {
+
+        Route::get(
+            'users',
+            [UserController::class, 'index']
+        );
+
+        Route::get(
+            'users/{uuid}',
+            [UserController::class, 'show']
+        );
+
+    });
+
+    Route::middleware([
+        'auth:sanctum',
+        'permission:user.create',
+    ])->post(
         'users',
-        [IdentityController::class, 'index']
+        [UserController::class, 'store']
     );
 
-    Route::post(
-        'users',
-        [IdentityController::class, 'store']
-    );
-
-    Route::get(
+    Route::middleware([
+        'auth:sanctum',
+        'permission:user.update',
+    ])->put(
         'users/{uuid}',
-        [IdentityController::class, 'show']
+        [UserController::class, 'update']
     );
 
-    Route::put(
+    Route::middleware([
+        'auth:sanctum',
+        'permission:user.delete',
+    ])->delete(
         'users/{uuid}',
-        [IdentityController::class, 'update']
-    );
-
-    Route::post(
-        'users/{uuid}/deactivate',
-        [IdentityController::class, 'deactivate']
+        [UserController::class, 'destroy']
     );
 
 });
-
-Route::get(
-    'role-test',
-    function () {
-        return response()->json([
-            'message' => 'Role Middleware Working',
-        ]);
-    }
-)->middleware([
-    'auth:sanctum',
-    'role:super_admin',
-]);
-
-Route::get(
-    'permission-test',
-    function () {
-        return response()->json([
-            'message' => 'Permission Middleware Working',
-        ]);
-    }
-)->middleware([
-    'auth:sanctum',
-    'permission:dashboard.view',
-]);

@@ -25,6 +25,7 @@ import BusinessIcon from '@mui/icons-material/Business'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
+import OrganizationSwitcher from '../common/OrganizationSwitcher'
 
 import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -38,8 +39,19 @@ import ProfileMenu from '../common/ProfileMenu'
 
 const drawerWidth = 270
 
-export default function DashboardLayout() {
+interface MenuItem {
+  title: string
+  icon: React.ReactNode
+  url: string
+  permission: string
+}
 
+interface MenuGroup {
+  group: string
+  items: MenuItem[]
+}
+
+export default function DashboardLayout() {
   const navigate = useNavigate()
 
   const location = useLocation()
@@ -51,106 +63,82 @@ export default function DashboardLayout() {
   const [notificationsOpen, setNotificationsOpen] =
     useState(false)
 
-  const menu = [
-
+  const menu: MenuGroup[] = [
     {
       group: 'Overview',
-
       items: [
-
         {
           title: 'Dashboard',
           icon: <DashboardIcon />,
           url: '/dashboard',
           permission: 'dashboard.view',
         },
-
       ],
-
     },
 
     {
       group: 'Training',
-
       items: [
-
         {
           title: 'Programs',
           icon: <SchoolIcon />,
           url: '/programs',
           permission: 'program.view',
         },
-
         {
           title: 'Participants',
           icon: <PeopleIcon />,
           url: '/participants',
           permission: 'participant.view',
         },
-
         {
           title: 'Sessions',
           icon: <EventIcon />,
           url: '/sessions',
           permission: 'session.view',
         },
-
       ],
-
     },
 
     {
       group: 'Operations',
-
       items: [
-
         {
           title: 'Attendance',
           icon: <FactCheckIcon />,
           url: '/attendance',
           permission: 'attendance.view',
         },
-
         {
           title: 'Credentials',
           icon: <WorkspacePremiumIcon />,
           url: '/credentials',
           permission: 'credential.view',
         },
-
       ],
-
     },
 
     {
       group: 'Administration',
-
       items: [
-
         {
           title: 'Organizations',
           icon: <BusinessIcon />,
-          url: '#',
+          url: '/organizations',
           permission: 'organization.view',
         },
-
         {
           title: 'Users',
           icon: <AdminPanelSettingsIcon />,
-          url: '#',
+          url: '/users',
           permission: 'user.view',
         },
-
       ],
-
     },
-
   ]
 
   return (
-
     <Box sx={{ display: 'flex' }}>
-
       <CssBaseline />
 
       <AppBar
@@ -162,7 +150,6 @@ export default function DashboardLayout() {
           zIndex: 1300,
         }}
       >
-
         <Toolbar>
 
           <Box
@@ -188,15 +175,27 @@ export default function DashboardLayout() {
                 variant="caption"
                 color="text.secondary"
               >
-                Global CyberSafe Academy
+                Global CyberSafe
               </Typography>
 
             </Box>
 
-            <GlobalSearch
-              value={search}
-              onChange={setSearch}
-            />
+            <Box
+  sx={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: 2,
+  }}
+>
+
+  <OrganizationSwitcher />
+
+  <GlobalSearch
+    value={search}
+    onChange={setSearch}
+  />
+
+</Box>
 
           </Box>
 
@@ -205,14 +204,12 @@ export default function DashboardLayout() {
               setNotificationsOpen(true)
             }
           >
-
             <Badge
               badgeContent={3}
               color="error"
             >
               <NotificationsNoneIcon />
             </Badge>
-
           </IconButton>
 
           <IconButton sx={{ ml: 1 }}>
@@ -222,38 +219,32 @@ export default function DashboardLayout() {
           <ProfileMenu />
 
         </Toolbar>
-
       </AppBar>
 
       <Drawer
         variant="permanent"
         sx={{
           width: drawerWidth,
-
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
             borderRight: '1px solid #e5e7eb',
           },
-
         }}
       >
-
         <Toolbar />
 
         {menu.map((section) => {
 
-          const visibleItems =
-            section.items.filter((item) =>
-              hasPermission(item.permission)
-            )
+          const visibleItems = section.items.filter(
+            (item) => hasPermission(item.permission)
+          )
 
           if (visibleItems.length === 0) {
             return null
           }
 
           return (
-
             <Box key={section.group}>
 
               <Typography
@@ -280,9 +271,7 @@ export default function DashboardLayout() {
                       location.pathname === item.url
                     }
                     onClick={() =>
-                      item.url !== '#'
-                        ? navigate(item.url)
-                        : undefined
+                      navigate(item.url)
                     }
                   >
 
@@ -303,7 +292,6 @@ export default function DashboardLayout() {
               <Divider sx={{ mt: 1 }} />
 
             </Box>
-
           )
 
         })}
@@ -319,7 +307,6 @@ export default function DashboardLayout() {
           p: 4,
         }}
       >
-
         <Toolbar />
 
         <BreadcrumbsBar />
@@ -336,7 +323,5 @@ export default function DashboardLayout() {
       />
 
     </Box>
-
   )
-
 }

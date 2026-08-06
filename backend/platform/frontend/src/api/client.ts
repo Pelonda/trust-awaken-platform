@@ -11,12 +11,22 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
 
   const token = localStorage.getItem(
-    'awaken_token',
+    'awaken_token'
   )
 
   if (token) {
-    config.headers.Authorization =
-      `Bearer ${token}`
+    config.headers.Authorization = `Bearer ${token}`
+  }
+
+  const organizationUuid =
+    localStorage.getItem(
+      'organization_uuid'
+    )
+
+  if (organizationUuid) {
+    config.headers[
+      'X-Organization'
+    ] = organizationUuid
   }
 
   return config

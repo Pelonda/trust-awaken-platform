@@ -1,6 +1,5 @@
 import {
   InputAdornment,
-  Paper,
   TextField,
 } from '@mui/material'
 
@@ -16,35 +15,25 @@ export default function GlobalSearch({
   onChange,
 }: Props) {
   return (
-    <Paper
-      elevation={0}
+    <TextField
+      size="small"
+      placeholder="Search..."
+      value={value}
+      onChange={(e) =>
+        onChange(e.target.value)
+      }
       sx={{
-        width: 350,
-        borderRadius: 3,
-        border: '1px solid #e5e7eb',
+        width: 320,
       }}
-    >
-      <TextField
-        fullWidth
-        placeholder="Search..."
-        variant="standard"
-        value={value}
-        onChange={(e) =>
-          onChange(e.target.value)
-        }
-        InputProps={{
-          disableUnderline: true,
+      slotProps={{
+        input: {
           startAdornment: (
             <InputAdornment position="start">
               <SearchIcon />
             </InputAdornment>
           ),
-        }}
-        sx={{
-          px: 2,
-          py: 1,
-        }}
-      />
-    </Paper>
+        },
+      }}
+    />
   )
 }

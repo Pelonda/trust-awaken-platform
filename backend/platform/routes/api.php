@@ -12,6 +12,7 @@ use App\Presentation\Api\Verification\Controllers\VerificationController;
 use App\Presentation\Api\Dashboard\Controllers\DashboardController;
 use App\Presentation\Api\Dashboard\Controllers\DashboardActivityController;
 use App\Presentation\Api\Auth\Controllers\AuthController;
+use App\Presentation\Api\Credential\Controllers\DownloadCredentialController;
 
 /*
 |--------------------------------------------------------------------------
@@ -284,6 +285,11 @@ Route::prefix('v1/credentials')->group(function (): void {
 Route::post(
     '{uuid}/restore',
     [CredentialController::class, 'restore']
+);
+
+Route::get(
+    '{uuid}/download',
+    DownloadCredentialController::class
 );
 
 });

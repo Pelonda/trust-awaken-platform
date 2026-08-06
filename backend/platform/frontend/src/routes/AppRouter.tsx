@@ -8,6 +8,8 @@ import PublicRoute from '../components/auth/PublicRoute'
 import LoginPage from '../pages/LoginPage'
 import DashboardPage from '../pages/DashboardPage'
 
+import { OrganizationsPage } from '../features/organizations'
+import { UsersPage } from '../features/users'
 import { ProgramsPage } from '../features/programs'
 import { ParticipantsPage } from '../features/participants'
 import { SessionsPage } from '../features/sessions'
@@ -39,6 +41,16 @@ export default function AppRouter() {
         <Route
           path="/dashboard"
           element={<DashboardPage />}
+        />
+
+        <Route
+          path="/organizations"
+          element={<OrganizationsPage />}
+        />
+
+        <Route
+          path="/users"
+          element={<UsersPage />}
         />
 
         <Route
