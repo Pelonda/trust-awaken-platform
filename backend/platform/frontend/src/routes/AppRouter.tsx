@@ -16,6 +16,7 @@ import { SessionsPage } from '../features/sessions'
 import { AttendancePage } from '../features/attendance'
 import { CredentialsPage } from '../features/credentials'
 import { VerificationPage } from '../features/verification'
+import { DocumentStudioPage } from '../features/documents'
 
 export default function AppRouter() {
   return (
@@ -77,6 +78,10 @@ export default function AppRouter() {
           path="/credentials"
           element={<CredentialsPage />}
         />
+<Route
+  path="/document-studio"
+  element={<DocumentStudioPage />}
+/>
 
       </Route>
 
@@ -84,6 +89,7 @@ export default function AppRouter() {
         path="/verify"
         element={<VerificationPage />}
       />
+
 
     </Routes>
   )

@@ -2,16 +2,22 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { GridColDef } from '@mui/x-data-grid'
 
-import AppToolbar from '../../components/common/AppToolbar'
-import AppSkeleton from '../../components/common/AppSkeleton'
-import EmptyState from '../../components/common/EmptyState'
-import SearchBar from '../../components/common/SearchBar'
-import ConfirmDialog from '../../components/dialogs/ConfirmDialog'
 import AppDataGrid from '../../components/tables/AppDataGrid'
+import AppSkeleton from '../../components/common/AppSkeleton'
+import ConfirmDialog from '../../components/dialogs/ConfirmDialog'
+import EmptyState from '../../components/common/EmptyState'
+import PageContainer from '../../components/common/PageContainer'
+import SearchBar from '../../components/common/SearchBar'
 import * as Toast from '../../components/common/AppToast'
 
 import CredentialDialog from './CredentialDialog'
-import { deleteCredential } from './api'
+
+import {
+  deleteCredential,
+  downloadCredential,
+  previewCredential,
+} from './api'
+
 import { useCredentials } from './hooks'
 
 export default function CredentialsPage() {
@@ -21,16 +27,23 @@ export default function CredentialsPage() {
   const { data, isLoading } = useCredentials()
 
   const [search, setSearch] = useState('')
+
   const [createOpen, setCreateOpen] = useState(false)
+
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [selectedCredential, setSelectedCredential] = useState<any>(null)
+
+  const [selectedCredential, setSelectedCredential] =
+    useState<any>(null)
 
   const deleteMutation = useMutation({
+
     mutationFn: deleteCredential,
 
     onSuccess: async () => {
 
-      Toast.success('Credential deleted.')
+      Toast.success(
+        'Credential deleted.'
+      )
 
       await queryClient.invalidateQueries({
         queryKey: ['credentials'],
@@ -40,7 +53,9 @@ export default function CredentialsPage() {
 
     onError: () => {
 
-      Toast.error('Unable to delete credential.')
+      Toast.error(
+        'Unable to delete credential.'
+      )
 
     },
 
@@ -48,12 +63,16 @@ export default function CredentialsPage() {
 
   const rows = useMemo(() => {
 
-    if (!data?.data) return []
+    if (!data?.data) {
+      return []
+    }
 
     return data.data.filter((credential: any) =>
+
       credential.credential_number
         ?.toLowerCase()
         .includes(search.toLowerCase())
+
     )
 
   }, [data, search])
@@ -87,18 +106,18 @@ export default function CredentialsPage() {
   if (rows.length === 0) {
 
     return (
-      <>
-        <AppToolbar
-          title="Credentials"
-          subtitle="Issue and manage credentials"
-          buttonText="Issue Credential"
-          onAdd={() => setCreateOpen(true)}
-        >
-          <SearchBar
-            value={search}
-            onChange={setSearch}
-          />
-        </AppToolbar>
+
+      <PageContainer
+        title="Credentials"
+        subtitle="Issue and manage credentials"
+        buttonText="Issue Credential"
+        onAdd={() => setCreateOpen(true)}
+      >
+
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+        />
 
         <EmptyState
           title="No Credentials"
@@ -109,56 +128,89 @@ export default function CredentialsPage() {
 
         <CredentialDialog
           open={createOpen}
-          onClose={() => setCreateOpen(false)}
+          onClose={() =>
+            setCreateOpen(false)
+          }
         />
-      </>
+
+      </PageContainer>
+
     )
 
   }
 
   return (
-    <>
-      <AppToolbar
-        title="Credentials"
-        subtitle="Issue and manage credentials"
-        buttonText="Issue Credential"
-        onAdd={() => setCreateOpen(true)}
-      >
-        <SearchBar
-          value={search}
-          onChange={setSearch}
-        />
-      </AppToolbar>
+
+    <PageContainer
+      title="Credentials"
+      subtitle="Issue and manage credentials"
+      buttonText="Issue Credential"
+      onAdd={() => setCreateOpen(true)}
+    >
+
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+      />
 
       <AppDataGrid
         rows={rows}
         columns={columns}
-        onEdit={(row) => console.log(row)}
-        onDelete={(row) => {
-          setSelectedCredential(row)
+
+        onPreview={(credential) =>
+          previewCredential(
+            credential.uuid
+          )
+        }
+
+        onDownload={(credential) =>
+          downloadCredential(
+            credential.uuid
+          )
+        }
+
+        onEdit={(credential) =>
+          console.log(credential)
+        }
+
+        onDelete={(credential) => {
+
+          setSelectedCredential(
+            credential
+          )
+
           setConfirmOpen(true)
+
         }}
       />
 
       <ConfirmDialog
         open={confirmOpen}
         title="Delete Credential"
-        message="Delete this credential?"
+        message={`Delete "${selectedCredential?.credential_number}"?`}
         loading={deleteMutation.isPending}
         onCancel={() => {
+
           setConfirmOpen(false)
+
           setSelectedCredential(null)
+
         }}
         onConfirm={() => {
 
-          if (!selectedCredential) return
+          if (!selectedCredential) {
+            return
+          }
 
           deleteMutation.mutate(
             selectedCredential.uuid,
             {
               onSuccess: () => {
+
                 setConfirmOpen(false)
+
                 setSelectedCredential(null)
+
               },
             }
           )
@@ -168,8 +220,13 @@ export default function CredentialsPage() {
 
       <CredentialDialog
         open={createOpen}
-        onClose={() => setCreateOpen(false)}
+        onClose={() =>
+          setCreateOpen(false)
+        }
       />
-    </>
+
+    </PageContainer>
+
   )
+
 }

@@ -26,6 +26,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
 import OrganizationSwitcher from '../common/OrganizationSwitcher'
+import DescriptionIcon from '@mui/icons-material/Description'
 
 import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -101,22 +102,34 @@ export default function DashboardLayout() {
     },
 
     {
-      group: 'Operations',
-      items: [
-        {
-          title: 'Attendance',
-          icon: <FactCheckIcon />,
-          url: '/attendance',
-          permission: 'attendance.view',
-        },
-        {
-          title: 'Credentials',
-          icon: <WorkspacePremiumIcon />,
-          url: '/credentials',
-          permission: 'credential.view',
-        },
-      ],
+  group: 'Operations',
+
+  items: [
+
+    {
+      title: 'Attendance',
+      icon: <FactCheckIcon />,
+      url: '/attendance',
+      permission: 'attendance.view',
     },
+
+    {
+      title: 'Credentials',
+      icon: <WorkspacePremiumIcon />,
+      url: '/credentials',
+      permission: 'credential.view',
+    },
+
+    {
+      title: 'Document Studio',
+      icon: <DescriptionIcon />,
+      url: '/document-studio',
+      permission: 'credential.view',
+    },
+
+  ],
+
+},
 
     {
       group: 'Administration',

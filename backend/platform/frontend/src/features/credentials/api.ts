@@ -40,6 +40,15 @@ export async function deleteCredential(
   return data
 }
 
+export function previewCredential(
+  uuid: string,
+) {
+  window.open(
+    `${import.meta.env.VITE_API_URL}/credentials/${uuid}/preview`,
+    '_blank'
+  )
+}
+
 export async function downloadCredential(
   uuid: string,
 ) {
@@ -54,13 +63,11 @@ export async function downloadCredential(
     new Blob([response.data])
   )
 
-  const link =
-    document.createElement('a')
+  const link = document.createElement('a')
 
   link.href = url
 
-  link.download =
-    `credential-${uuid}.pdf`
+  link.download = `credential-${uuid}.pdf`
 
   document.body.appendChild(link)
 

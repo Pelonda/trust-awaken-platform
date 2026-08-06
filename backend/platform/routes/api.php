@@ -13,6 +13,7 @@ use App\Presentation\Api\Dashboard\Controllers\DashboardController;
 use App\Presentation\Api\Dashboard\Controllers\DashboardActivityController;
 use App\Presentation\Api\Auth\Controllers\AuthController;
 use App\Presentation\Api\Credential\Controllers\DownloadCredentialController;
+use App\Presentation\Api\Credential\Controllers\PreviewCredentialController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +28,7 @@ use App\Presentation\Api\Credential\Controllers\DownloadCredentialController;
 require __DIR__ . '/api/public.php';
 require __DIR__ . '/api/identity.php';
 require __DIR__ . '/api/organization.php';
+require __DIR__ . '/api/document.php';
 
 // Future Modules
 // require __DIR__ . '/api/billing.php';
