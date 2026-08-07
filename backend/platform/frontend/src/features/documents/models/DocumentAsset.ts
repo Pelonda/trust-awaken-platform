@@ -1,10 +1,14 @@
 export interface DocumentAsset {
+
   id: string
+
   name: string
+
   type:
     | 'image'
     | 'logo'
     | 'background'
+    | 'watermark'
     | 'signature'
     | 'seal'
 
@@ -14,5 +18,6 @@ export interface DocumentAsset {
 
   height: number
 
-  uploadedAt: string
+  createdAt: string
+
 }

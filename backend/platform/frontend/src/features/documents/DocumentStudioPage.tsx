@@ -1,83 +1,57 @@
 import {
   Box,
-  Grid,
-  Paper,
+  Stack,
   Typography,
 } from '@mui/material'
 
-import CanvasEditor from './CanvasEditor'
-import LayersPanel from './LayersPanel'
-import PropertiesPanel from './PropertiesPanel'
-import AssetLibrary from './AssetLibrary'
+import Studio from './components/polotno/Studio'
 
 export default function DocumentStudioPage() {
   return (
-    <Box>
-
-      <Typography
-        variant="h4"
-        fontWeight={700}
-        sx={{ mb: 3 }}
+    <Box
+      sx={{
+        height: 'calc(100vh - 90px)',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+      }}
+    >
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{
+          mb: 2,
+          flexShrink: 0,
+        }}
       >
-        Document Studio
-      </Typography>
+        <Box>
+          <Typography
+            variant="h4"
+            fontWeight={700}
+          >
+            Document Studio
+          </Typography>
 
-      <Grid
-        container
-        spacing={2}
+          <Typography color="text.secondary">
+            Design certificates, badges, ID cards and printable documents.
+          </Typography>
+        </Box>
+      </Stack>
+
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflow: 'hidden',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 2,
+          bgcolor: '#ffffff',
+        }}
       >
-
-        <Grid
-          size={{ xs: 12, md: 2 }}
-        >
-          <Paper
-            sx={{
-              height: 800,
-              p: 2,
-            }}
-          >
-            <AssetLibrary />
-          </Paper>
-        </Grid>
-
-        <Grid
-          size={{ xs: 12, md: 7 }}
-        >
-          <Paper
-            sx={{
-              height: 800,
-              p: 2,
-            }}
-          >
-            <CanvasEditor />
-          </Paper>
-        </Grid>
-
-        <Grid
-          size={{ xs: 12, md: 3 }}
-        >
-          <Paper
-            sx={{
-              height: 390,
-              mb: 2,
-              p: 2,
-            }}
-          >
-            <LayersPanel />
-          </Paper>
-
-          <Paper
-            sx={{
-              height: 390,
-              p: 2,
-            }}
-          >
-            <PropertiesPanel />
-          </Paper>
-        </Grid>
-
-      </Grid>
-
+        <Studio />
+      </Box>
     </Box>
   )
 }
