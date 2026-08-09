@@ -1,9 +1,7 @@
 import {
   AppBar,
-  Avatar,
   Badge,
   Box,
-  CssBaseline,
   Divider,
   Drawer,
   IconButton,
@@ -25,24 +23,31 @@ import BusinessIcon from '@mui/icons-material/Business'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
-import OrganizationSwitcher from '../common/OrganizationSwitcher'
 import DescriptionIcon from '@mui/icons-material/Description'
 
-import { useState } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import {
+  useState,
+  type ReactNode,
+} from 'react'
+
+import {
+  Outlet,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
 
 import { useAuth } from '../../context/AuthContext'
 
 import BreadcrumbsBar from '../common/BreadcrumbsBar'
-import GlobalSearch from '../common/GlobalSearch'
 import NotificationDrawer from '../common/NotificationDrawer'
+import OrganizationSwitcher from '../common/OrganizationSwitcher'
 import ProfileMenu from '../common/ProfileMenu'
 
 const drawerWidth = 270
 
 interface MenuItem {
   title: string
-  icon: React.ReactNode
+  icon: ReactNode
   url: string
   permission: string
 }
@@ -53,130 +58,203 @@ interface MenuGroup {
 }
 
 export default function DashboardLayout() {
-  const navigate = useNavigate()
+  const navigate =
+    useNavigate()
 
-  const location = useLocation()
+  const location =
+    useLocation()
 
-  const { hasPermission } = useAuth()
+  const {
+    hasPermission,
+  } = useAuth()
 
-  const [search, setSearch] = useState('')
-
-  const [notificationsOpen, setNotificationsOpen] =
-    useState(false)
+  const [
+    notificationsOpen,
+    setNotificationsOpen,
+  ] = useState(false)
 
   const menu: MenuGroup[] = [
     {
       group: 'Overview',
+
       items: [
         {
           title: 'Dashboard',
-          icon: <DashboardIcon />,
+
+          icon: (
+            <DashboardIcon />
+          ),
+
           url: '/dashboard',
-          permission: 'dashboard.view',
+
+          permission:
+            'dashboard.view',
         },
       ],
     },
 
     {
       group: 'Training',
+
       items: [
         {
           title: 'Programs',
-          icon: <SchoolIcon />,
+
+          icon: (
+            <SchoolIcon />
+          ),
+
           url: '/programs',
-          permission: 'program.view',
+
+          permission:
+            'program.view',
         },
+
         {
           title: 'Participants',
-          icon: <PeopleIcon />,
+
+          icon: (
+            <PeopleIcon />
+          ),
+
           url: '/participants',
-          permission: 'participant.view',
+
+          permission:
+            'participant.view',
         },
+
         {
           title: 'Sessions',
-          icon: <EventIcon />,
+
+          icon: (
+            <EventIcon />
+          ),
+
           url: '/sessions',
-          permission: 'session.view',
+
+          permission:
+            'session.view',
         },
       ],
     },
 
     {
-  group: 'Operations',
+      group: 'Operations',
 
-  items: [
-
-    {
-      title: 'Attendance',
-      icon: <FactCheckIcon />,
-      url: '/attendance',
-      permission: 'attendance.view',
-    },
-
-    {
-      title: 'Credentials',
-      icon: <WorkspacePremiumIcon />,
-      url: '/credentials',
-      permission: 'credential.view',
-    },
-
-    {
-      title: 'Document Studio',
-      icon: <DescriptionIcon />,
-      url: '/document-studio',
-      permission: 'credential.view',
-    },
-
-  ],
-
-},
-
-    {
-      group: 'Administration',
       items: [
         {
-          title: 'Organizations',
-          icon: <BusinessIcon />,
-          url: '/organizations',
-          permission: 'organization.view',
+          title: 'Attendance',
+
+          icon: (
+            <FactCheckIcon />
+          ),
+
+          url: '/attendance',
+
+          permission:
+            'attendance.view',
         },
+
+        {
+          title: 'Credentials',
+
+          icon: (
+            <WorkspacePremiumIcon />
+          ),
+
+          url: '/credentials',
+
+          permission:
+            'credential.view',
+        },
+
+        {
+          title:
+            'Document Studio',
+
+          icon: (
+            <DescriptionIcon />
+          ),
+
+          url:
+            '/document-studio',
+
+          permission:
+            'credential.view',
+        },
+      ],
+    },
+
+    {
+      group:
+        'Administration',
+
+      items: [
+        {
+          title:
+            'Organizations',
+
+          icon: (
+            <BusinessIcon />
+          ),
+
+          url:
+            '/organizations',
+
+          permission:
+            'organization.view',
+        },
+
         {
           title: 'Users',
-          icon: <AdminPanelSettingsIcon />,
+
+          icon: (
+            <AdminPanelSettingsIcon />
+          ),
+
           url: '/users',
-          permission: 'user.view',
+
+          permission:
+            'user.view',
         },
       ],
     },
   ]
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-
+    <Box
+      sx={{
+        display: 'flex',
+      }}
+    >
       <AppBar
         elevation={0}
         color="inherit"
         position="fixed"
         sx={{
-          borderBottom: '1px solid #e5e7eb',
+          borderBottom:
+            '1px solid #e5e7eb',
+
           zIndex: 1300,
         }}
       >
         <Toolbar>
-
           <Box
             sx={{
               flexGrow: 1,
+
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
+
+              justifyContent:
+                'space-between',
+
+              alignItems:
+                'center',
+
               mr: 3,
             }}
           >
-
             <Box>
-
               <Typography
                 variant="h6"
                 fontWeight={700}
@@ -188,33 +266,31 @@ export default function DashboardLayout() {
                 variant="caption"
                 color="text.secondary"
               >
-                Global CyberSafe
+                Credential &
+                Training Platform
               </Typography>
-
             </Box>
 
             <Box
-  sx={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: 2,
-  }}
->
+              sx={{
+                display: 'flex',
 
-  <OrganizationSwitcher />
+                alignItems:
+                  'center',
 
-  <GlobalSearch
-    value={search}
-    onChange={setSearch}
-  />
-
-</Box>
-
+                gap: 2,
+              }}
+            >
+              <OrganizationSwitcher />
+            </Box>
           </Box>
 
           <IconButton
+            aria-label="Notifications"
             onClick={() =>
-              setNotificationsOpen(true)
+              setNotificationsOpen(
+                true,
+              )
             }
           >
             <Badge
@@ -225,98 +301,146 @@ export default function DashboardLayout() {
             </Badge>
           </IconButton>
 
-          <IconButton sx={{ ml: 1 }}>
+          <IconButton
+            aria-label="Toggle theme"
+            sx={{
+              ml: 1,
+            }}
+          >
             <DarkModeOutlinedIcon />
           </IconButton>
 
           <ProfileMenu />
-
         </Toolbar>
       </AppBar>
 
       <Drawer
         variant="permanent"
         sx={{
-          width: drawerWidth,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-            borderRight: '1px solid #e5e7eb',
-          },
+          width:
+            drawerWidth,
+
+          flexShrink: 0,
+
+          '& .MuiDrawer-paper':
+            {
+              width:
+                drawerWidth,
+
+              boxSizing:
+                'border-box',
+
+              borderRight:
+                '1px solid #e5e7eb',
+            },
         }}
       >
         <Toolbar />
 
-        {menu.map((section) => {
+        {menu.map(
+          (section) => {
+            const visibleItems =
+              section.items.filter(
+                (item) =>
+                  hasPermission(
+                    item.permission,
+                  ),
+              )
 
-          const visibleItems = section.items.filter(
-            (item) => hasPermission(item.permission)
-          )
+            if (
+              visibleItems.length ===
+              0
+            ) {
+              return null
+            }
 
-          if (visibleItems.length === 0) {
-            return null
-          }
-
-          return (
-            <Box key={section.group}>
-
-              <Typography
-                sx={{
-                  px: 3,
-                  pt: 3,
-                  pb: 1,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: 'text.secondary',
-                  textTransform: 'uppercase',
-                }}
+            return (
+              <Box
+                key={
+                  section.group
+                }
               >
-                {section.group}
-              </Typography>
+                <Typography
+                  sx={{
+                    px: 3,
 
-              <List dense>
+                    pt: 3,
 
-                {visibleItems.map((item) => (
+                    pb: 1,
 
-                  <ListItemButton
-                    key={item.title}
-                    selected={
-                      location.pathname === item.url
-                    }
-                    onClick={() =>
-                      navigate(item.url)
-                    }
-                  >
+                    fontSize: 12,
 
-                    <ListItemIcon>
-                      {item.icon}
-                    </ListItemIcon>
+                    fontWeight: 700,
 
-                    <ListItemText
-                      primary={item.title}
-                    />
+                    color:
+                      'text.secondary',
 
-                  </ListItemButton>
+                    textTransform:
+                      'uppercase',
+                  }}
+                >
+                  {section.group}
+                </Typography>
 
-                ))}
+                <List dense>
+                  {visibleItems.map(
+                    (item) => (
+                      <ListItemButton
+                        key={
+                          item.title
+                        }
+                        selected={
+                          location.pathname ===
+                          item.url
+                        }
+                        onClick={() =>
+                          navigate(
+                            item.url,
+                          )
+                        }
+                      >
+                        <ListItemIcon>
+                          {
+                            item.icon
+                          }
+                        </ListItemIcon>
 
-              </List>
+                        <ListItemText
+                          primary={
+                            item.title
+                          }
+                        />
+                      </ListItemButton>
+                    ),
+                  )}
+                </List>
 
-              <Divider sx={{ mt: 1 }} />
-
-            </Box>
-          )
-
-        })}
-
+                <Divider
+                  sx={{
+                    mt: 1,
+                  }}
+                />
+              </Box>
+            )
+          },
+        )}
       </Drawer>
 
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          background: '#f4f7fb',
-          minHeight: '100vh',
+
+          width: {
+            sm: `calc(100% - ${drawerWidth}px)`,
+          },
+
+          background:
+            '#f4f7fb',
+
+          minHeight:
+            '100vh',
+
           p: 4,
         }}
       >
@@ -325,16 +449,18 @@ export default function DashboardLayout() {
         <BreadcrumbsBar />
 
         <Outlet />
-
       </Box>
 
       <NotificationDrawer
-        open={notificationsOpen}
+        open={
+          notificationsOpen
+        }
         onClose={() =>
-          setNotificationsOpen(false)
+          setNotificationsOpen(
+            false,
+          )
         }
       />
-
     </Box>
   )
 }

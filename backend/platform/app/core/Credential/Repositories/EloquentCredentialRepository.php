@@ -16,13 +16,29 @@ final class EloquentCredentialRepository implements CredentialRepositoryInterfac
     ): Credential {
         return Credential::create([
             'uuid' => (string) Str::uuid(),
+
             'organization_id' => $data->organizationId,
             'participant_id' => $data->participantId,
             'program_id' => $data->programId,
             'session_id' => $data->sessionId,
+
+            /*
+             * Keep the legacy template slot
+             * for old credentials.
+             */
             'template_id' => $data->templateId,
-            'credential_number' => 'CR-' . strtoupper(Str::random(12)),
-            'verification_code' => (string) Str::uuid(),
+
+            /*
+             * New Fabric Studio template slot.
+             */
+            'document_template_id' => $data->documentTemplateId,
+
+            'credential_number' =>
+                'CR-' . strtoupper(Str::random(12)),
+
+            'verification_code' =>
+                (string) Str::uuid(),
+
             'credential_type' => $data->credentialType,
             'status' => 'issued',
             'issued_at' => now(),
@@ -77,12 +93,10 @@ final class EloquentCredentialRepository implements CredentialRepositoryInterfac
     }
 
     public function findByVerificationCode(
-    string $verificationCode
-): ?Credential {
-
-    return Credential::query()
-        ->where('verification_code', $verificationCode)
-        ->first();
-}
-
+        string $verificationCode
+    ): ?Credential {
+        return Credential::query()
+            ->where('verification_code', $verificationCode)
+            ->first();
+    }
 }

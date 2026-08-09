@@ -1,23 +1,45 @@
-export interface DocumentAsset {
+export type DocumentAssetType =
+  | 'image'
+  | 'logo'
+  | 'background'
+  | 'watermark'
+  | 'signature'
+  | 'seal'
 
+export interface DocumentAsset {
   id: string
+  uuid: string
+
+  organization_id: number
 
   name: string
 
-  type:
-    | 'image'
-    | 'logo'
-    | 'background'
-    | 'watermark'
-    | 'signature'
-    | 'seal'
+  type: DocumentAssetType
+
+  asset_type:
+    DocumentAssetType
+
+  disk: string
+
+  path: string
 
   url: string
 
-  width: number
+  mime_type:
+    string | null
 
-  height: number
+  width:
+    number | null
+
+  height:
+    number | null
+
+  metadata:
+    Record<string, unknown> | null
 
   createdAt: string
 
+  created_at: string
+
+  updated_at: string
 }

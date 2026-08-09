@@ -4,7 +4,7 @@ import {
   Typography,
 } from '@mui/material'
 
-import Studio from './components/polotno/Studio'
+import Studio from './components/fabric/FabricStudio'
 
 export default function DocumentStudioPage() {
   return (

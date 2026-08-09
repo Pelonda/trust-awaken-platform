@@ -6,7 +6,11 @@ import {
   Typography,
 } from '@mui/material'
 
+import { observer } from 'mobx-react-lite'
+import { SectionTab } from 'polotno/side-panel'
 import type { StoreType } from 'polotno/model/store'
+
+import DataObjectIcon from '@mui/icons-material/DataObject'
 
 interface Props {
   store: StoreType
@@ -55,86 +59,114 @@ const variables = [
   },
 ]
 
-export default function VariablesPanel({
-  store,
-}: Props) {
-  function addVariable(
-    value: string,
-  ) {
-    const page =
-      store.activePage ??
-      store.pages[0]
+export const VariablesPanel =
+  observer(({ store }: Props) => {
 
-    if (!page) {
-      return
+    function addVariable(
+      value: string,
+    ) {
+
+      const page =
+        store.activePage ??
+        store.pages[0]
+
+      if (!page) {
+        return
+      }
+
+      page.addElement({
+        type: 'text',
+
+        x: 100,
+        y: 100,
+
+        width: 300,
+
+        text: value,
+
+        fontSize: 28,
+
+        fill: '#111827',
+
+        align: 'center',
+      })
+
     }
 
-    page.addElement({
-      type: 'text',
+    return (
+      <Box
+        sx={{
+          p: 2,
+          height: '100%',
+          overflow: 'auto',
+        }}
+      >
+        <Typography
+          variant="h6"
+          fontWeight={700}
+        >
+          Variables
+        </Typography>
 
-      x: 100,
-      y: 100,
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            mt: 0.5,
+          }}
+        >
+          Insert dynamic credential data.
+        </Typography>
 
-      width: 300,
+        <Divider sx={{ my: 2 }} />
 
-      text: value,
+        <Stack spacing={1}>
+          {variables.map(
+            (variable) => (
+              <Button
+                key={variable.value}
+                variant="outlined"
+                fullWidth
+                sx={{
+                  justifyContent:
+                    'flex-start',
 
-      fontSize: 28,
+                  textTransform:
+                    'none',
+                }}
+                onClick={() =>
+                  addVariable(
+                    variable.value,
+                  )
+                }
+              >
+                {variable.label}
+              </Button>
+            ),
+          )}
+        </Stack>
+      </Box>
+    )
 
-      fill: '#111827',
+  })
 
-      align: 'center',
-    })
-  }
+export const VariablesSection = {
 
-  return (
-    <Box
-      sx={{
-        p: 2,
-        height: '100%',
-        overflow: 'auto',
-      }}
+  name: 'variables',
+
+  Tab: (props: any) => (
+    <SectionTab
+      name="Variables"
+      {...props}
     >
-      <Typography
-        variant="h6"
-        fontWeight={700}
-      >
-        Variables
-      </Typography>
+      <DataObjectIcon
+        sx={{
+          fontSize: 22,
+        }}
+      />
+    </SectionTab>
+  ),
 
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ mt: 0.5 }}
-      >
-        Insert dynamic credential data.
-      </Typography>
+  Panel: VariablesPanel,
 
-      <Divider sx={{ my: 2 }} />
-
-      <Stack spacing={1}>
-        {variables.map(
-          (variable) => (
-            <Button
-              key={variable.value}
-              variant="outlined"
-              fullWidth
-              sx={{
-                justifyContent:
-                  'flex-start',
-                textTransform: 'none',
-              }}
-              onClick={() =>
-                addVariable(
-                  variable.value,
-                )
-              }
-            >
-              {variable.label}
-            </Button>
-          ),
-        )}
-      </Stack>
-    </Box>
-  )
 }

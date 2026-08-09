@@ -1,23 +1,5 @@
 import {
-  PolotnoContainer,
-  SidePanelWrap,
-  WorkspaceWrap,
-} from 'polotno'
-
-import {
-  DEFAULT_SECTIONS,
-  SidePanel,
-} from 'polotno/side-panel'
-
-import { Toolbar } from 'polotno/toolbar/toolbar'
-import { ZoomButtons } from 'polotno/toolbar/zoom-buttons'
-import { PagesTimeline } from 'polotno/pages-timeline'
-import { Workspace } from 'polotno/canvas/workspace'
-import { createStore } from 'polotno/model/store'
-
-import {
   Alert,
-  Box,
   Button,
   CircularProgress,
   Dialog,
@@ -34,9 +16,9 @@ import {
   Tooltip,
 } from '@mui/material'
 
+import AddIcon from '@mui/icons-material/Add'
 import SaveIcon from '@mui/icons-material/Save'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
-import AddIcon from '@mui/icons-material/Add'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import DeleteIcon from '@mui/icons-material/Delete'
 import StarIcon from '@mui/icons-material/Star'
@@ -47,42 +29,39 @@ import {
   useState,
 } from 'react'
 
-import {
-  VariablesSection,
-} from './VariablesPanel'
+import type {
+  Canvas,
+} from 'fabric'
 
-import {
-  ProtectedQrSection,
-} from './ProtectedQrPanel'
+import FabricTemplateService, {
+  type FabricCanvasJSON,
+  type SavedFabricTemplate,
+} from '../../services/FabricTemplateService'
 
-import {
-  BrandSection,
-} from './BrandPanel'
+interface Props {
+  canvas: Canvas | null
 
-import TemplateService, {
-  type SavedDocumentTemplate,
-} from '../../services/TemplateService'
+  onNew(): void
 
-import 'polotno/ui.css'
-
-const store = createStore({
-  showCredit: true,
-})
-
-if (store.pages.length === 0) {
-  store.addPage()
+  onLoaded(
+    template: SavedFabricTemplate,
+  ): void
 }
 
-const sections = [
-  DEFAULT_SECTIONS[0],
-  DEFAULT_SECTIONS[1],
-  VariablesSection,
-  ProtectedQrSection,
-  BrandSection,
-  ...DEFAULT_SECTIONS.slice(2),
+const CUSTOM_PROPERTIES = [
+  'awakenType',
+  'awakenVariable',
+  'awakenProtected',
+  'awakenBrandAsset',
+  'awakenAssetUuid',
+  'awakenAssetPath',
 ]
 
-export default function Studio() {
+export default function FabricTemplateManager({
+  canvas,
+  onNew,
+  onLoaded,
+}: Props) {
   const [
     templateName,
     setTemplateName,
@@ -101,17 +80,12 @@ export default function Studio() {
     templates,
     setTemplates,
   ] = useState<
-    SavedDocumentTemplate[]
+    SavedFabricTemplate[]
   >([])
 
   const [
-    loadOpen,
-    setLoadOpen,
-  ] = useState(false)
-
-  const [
-    saving,
-    setSaving,
+    dialogOpen,
+    setDialogOpen,
   ] = useState(false)
 
   const [
@@ -120,27 +94,36 @@ export default function Studio() {
   ] = useState(false)
 
   const [
+    saving,
+    setSaving,
+  ] = useState(false)
+
+  const [
     message,
     setMessage,
-  ] = useState<
-    string | null
-  >(null)
+  ] = useState<string | null>(
+    null,
+  )
 
   const [
     error,
     setError,
-  ] = useState<
-    string | null
-  >(null)
+  ] = useState<string | null>(
+    null,
+  )
 
-  async function refreshTemplates() {
+  async function refresh() {
     try {
       const result =
-        await TemplateService.all()
+        await FabricTemplateService.all()
 
-      setTemplates(result)
+      setTemplates(
+        result,
+      )
     } catch (exception) {
-      console.error(exception)
+      console.error(
+        exception,
+      )
 
       setError(
         exception instanceof Error
@@ -151,10 +134,14 @@ export default function Studio() {
   }
 
   useEffect(() => {
-    void refreshTemplates()
+    void refresh()
   }, [])
 
-  async function saveTemplate() {
+  async function save() {
+    if (!canvas) {
+      return
+    }
+
     const name =
       templateName.trim()
 
@@ -170,13 +157,24 @@ export default function Studio() {
       setSaving(true)
       setError(null)
 
-      const wasExisting =
-        currentTemplateId !== null
+      /*
+       * Persist Fabric JSON plus all
+       * Trust AWAKEN-specific metadata.
+       *
+       * awakenAssetUuid / awakenAssetPath
+       * allow templates to reference
+       * permanent document_assets instead
+       * of storing base64 images.
+       */
+      const json =
+        canvas.toJSON(
+          CUSTOM_PROPERTIES,
+        ) as FabricCanvasJSON
 
       const saved =
-        await TemplateService.save(
-          store,
+        await FabricTemplateService.save(
           name,
+          json,
           currentTemplateId,
         )
 
@@ -189,14 +187,16 @@ export default function Studio() {
       )
 
       setMessage(
-        wasExisting
+        currentTemplateId
           ? `Template "${saved.name}" updated.`
           : `Template "${saved.name}" created.`,
       )
 
-      await refreshTemplates()
+      await refresh()
     } catch (exception) {
-      console.error(exception)
+      console.error(
+        exception,
+      )
 
       setError(
         exception instanceof Error
@@ -208,31 +208,32 @@ export default function Studio() {
     }
   }
 
-  async function openTemplates() {
-    setLoadOpen(true)
-    setLoading(true)
-    setError(null)
-
-    try {
-      await refreshTemplates()
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function loadTemplate(
+  async function load(
     template:
-      SavedDocumentTemplate,
+      SavedFabricTemplate,
   ) {
+    if (!canvas) {
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
 
       const loaded =
-        await TemplateService.load(
-          store,
+        await FabricTemplateService.get(
           template.id,
         )
+
+      canvas.discardActiveObject()
+
+      canvas.clear()
+
+      await canvas.loadFromJSON(
+        loaded.canvas,
+      )
+
+      canvas.requestRenderAll()
 
       setCurrentTemplateId(
         loaded.id,
@@ -242,13 +243,21 @@ export default function Studio() {
         loaded.name,
       )
 
-      setLoadOpen(false)
+      setDialogOpen(
+        false,
+      )
+
+      onLoaded(
+        loaded,
+      )
 
       setMessage(
         `Template "${loaded.name}" loaded.`,
       )
     } catch (exception) {
-      console.error(exception)
+      console.error(
+        exception,
+      )
 
       setError(
         exception instanceof Error
@@ -260,26 +269,48 @@ export default function Studio() {
     }
   }
 
-  async function duplicateTemplate(
+  function createNew() {
+    setCurrentTemplateId(
+      null,
+    )
+
+    setTemplateName(
+      'Untitled Template',
+    )
+
+    setDialogOpen(
+      false,
+    )
+
+    onNew()
+
+    setMessage(
+      'New template started.',
+    )
+  }
+
+  async function duplicate(
     template:
-      SavedDocumentTemplate,
+      SavedFabricTemplate,
   ) {
     try {
       setLoading(true)
       setError(null)
 
-      const duplicated =
-        await TemplateService.duplicate(
+      const copy =
+        await FabricTemplateService.duplicate(
           template,
         )
 
-      await refreshTemplates()
+      await refresh()
 
       setMessage(
-        `Template "${duplicated.name}" duplicated.`,
+        `"${copy.name}" created.`,
       )
     } catch (exception) {
-      console.error(exception)
+      console.error(
+        exception,
+      )
 
       setError(
         exception instanceof Error
@@ -291,9 +322,9 @@ export default function Studio() {
     }
   }
 
-  async function deleteTemplate(
+  async function remove(
     template:
-      SavedDocumentTemplate,
+      SavedFabricTemplate,
   ) {
     const confirmed =
       window.confirm(
@@ -308,7 +339,7 @@ export default function Studio() {
       setLoading(true)
       setError(null)
 
-      await TemplateService.remove(
+      await FabricTemplateService.remove(
         template.id,
       )
 
@@ -324,17 +355,18 @@ export default function Studio() {
           'Untitled Template',
         )
 
-        store.clear()
-        store.addPage()
+        onNew()
       }
 
-      await refreshTemplates()
+      await refresh()
 
       setMessage(
-        `Template "${template.name}" deleted.`,
+        `"${template.name}" deleted.`,
       )
     } catch (exception) {
-      console.error(exception)
+      console.error(
+        exception,
+      )
 
       setError(
         exception instanceof Error
@@ -346,34 +378,27 @@ export default function Studio() {
     }
   }
 
-  async function setDefaultTemplate(
+  async function makeDefault(
     template:
-      SavedDocumentTemplate,
+      SavedFabricTemplate,
   ) {
-    if (template.default) {
-      setMessage(
-        `"${template.name}" is already the default template.`,
-      )
-
-      return
-    }
-
     try {
       setLoading(true)
       setError(null)
 
-      const updated =
-        await TemplateService.setDefault(
-          template,
-        )
+      await FabricTemplateService.setDefault(
+        template.id,
+      )
 
-      await refreshTemplates()
+      await refresh()
 
       setMessage(
-        `"${updated.name}" set as default.`,
+        `"${template.name}" set as default.`,
       )
     } catch (exception) {
-      console.error(exception)
+      console.error(
+        exception,
+      )
 
       setError(
         exception instanceof Error
@@ -385,59 +410,27 @@ export default function Studio() {
     }
   }
 
-  function newTemplate() {
-    setCurrentTemplateId(
-      null,
-    )
-
-    setTemplateName(
-      'Untitled Template',
-    )
-
-    setLoadOpen(false)
-    setError(null)
-
-    store.clear()
-    store.addPage()
-
-    setMessage(
-      'New template started.',
-    )
-  }
-
   return (
-    <Box
-      sx={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,
-      }}
-    >
+    <>
       <Stack
         direction="row"
         spacing={1}
         alignItems="center"
-        sx={{
-          px: 1.5,
-          py: 1,
-          borderBottom:
-            '1px solid #e2e8f0',
-          flexShrink: 0,
-        }}
       >
         <TextField
           size="small"
           label="Template name"
-          value={templateName}
-          onChange={(event) =>
-            setTemplateName(
-              event.target.value,
-            )
+          value={
+            templateName
+          }
+          onChange={
+            event =>
+              setTemplateName(
+                event.target.value,
+              )
           }
           sx={{
-            width: 260,
+            width: 240,
           }}
         />
 
@@ -447,12 +440,8 @@ export default function Studio() {
           startIcon={
             <AddIcon />
           }
-          disabled={
-            saving ||
-            loading
-          }
           onClick={
-            newTemplate
+            createNew
           }
         >
           New
@@ -475,10 +464,10 @@ export default function Studio() {
           }
           disabled={
             saving ||
-            loading
+            !canvas
           }
           onClick={() =>
-            void saveTemplate()
+            void save()
           }
         >
           {currentTemplateId
@@ -492,62 +481,26 @@ export default function Studio() {
           startIcon={
             <FolderOpenIcon />
           }
-          disabled={loading}
-          onClick={() =>
-            void openTemplates()
-          }
+          onClick={() => {
+            setDialogOpen(
+              true,
+            )
+
+            void refresh()
+          }}
         >
           Templates
         </Button>
       </Stack>
 
-      <Box
-        sx={{
-          flex: 1,
-          minHeight: 0,
-        }}
-      >
-        <PolotnoContainer
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
-        >
-          <SidePanelWrap>
-            <SidePanel
-              store={store}
-              sections={sections}
-              defaultSection="variables"
-            />
-          </SidePanelWrap>
-
-          <WorkspaceWrap>
-            <Toolbar
-              store={store}
-              downloadButtonEnabled={
-                false
-              }
-            />
-
-            <Workspace
-              store={store}
-            />
-
-            <ZoomButtons
-              store={store}
-            />
-
-            <PagesTimeline
-              store={store}
-            />
-          </WorkspaceWrap>
-        </PolotnoContainer>
-      </Box>
-
       <Dialog
-        open={loadOpen}
+        open={
+          dialogOpen
+        }
         onClose={() =>
-          setLoadOpen(false)
+          setDialogOpen(
+            false,
+          )
         }
         fullWidth
         maxWidth="sm"
@@ -556,41 +509,44 @@ export default function Studio() {
           Document Templates
         </DialogTitle>
 
-        <DialogContent dividers>
+        <DialogContent
+          dividers
+        >
           {loading ? (
-            <Box
+            <Stack
+              alignItems="center"
               sx={{
-                display: 'flex',
-                justifyContent:
-                  'center',
                 py: 4,
               }}
             >
               <CircularProgress />
-            </Box>
+            </Stack>
           ) : templates.length ===
             0 ? (
-            <Alert severity="info">
-              No saved templates yet.
+            <Alert
+              severity="info"
+            >
+              No templates yet.
             </Alert>
           ) : (
-            <List disablePadding>
+            <List
+              disablePadding
+            >
               {templates.map(
-                (template) => (
+                template => (
                   <ListItemButton
-                    key={template.id}
+                    key={
+                      template.id
+                    }
                     selected={
                       currentTemplateId ===
                       template.id
                     }
                     onClick={() =>
-                      void loadTemplate(
+                      void load(
                         template,
                       )
                     }
-                    sx={{
-                      pr: 1,
-                    }}
                   >
                     <ListItemText
                       primary={
@@ -603,37 +559,34 @@ export default function Studio() {
 
                     <Stack
                       direction="row"
-                      spacing={0.25}
-                      onClick={(
-                        event,
-                      ) =>
-                        event.stopPropagation()
+                      onClick={
+                        event =>
+                          event.stopPropagation()
                       }
                     >
                       <Tooltip
                         title={
                           template.default
-                            ? 'Default template'
-                            : 'Set as default'
+                            ? 'Default'
+                            : 'Set default'
                         }
                       >
                         <span>
                           <IconButton
                             size="small"
                             disabled={
-                              loading ||
                               template.default
                             }
                             onClick={() =>
-                              void setDefaultTemplate(
+                              void makeDefault(
                                 template,
                               )
                             }
                           >
                             {template.default ? (
                               <StarIcon
-                                fontSize="small"
                                 color="warning"
+                                fontSize="small"
                               />
                             ) : (
                               <StarBorderIcon
@@ -644,45 +597,39 @@ export default function Studio() {
                         </span>
                       </Tooltip>
 
-                      <Tooltip title="Duplicate">
-                        <span>
-                          <IconButton
-                            size="small"
-                            disabled={
-                              loading
-                            }
-                            onClick={() =>
-                              void duplicateTemplate(
-                                template,
-                              )
-                            }
-                          >
-                            <ContentCopyIcon
-                              fontSize="small"
-                            />
-                          </IconButton>
-                        </span>
+                      <Tooltip
+                        title="Duplicate"
+                      >
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            void duplicate(
+                              template,
+                            )
+                          }
+                        >
+                          <ContentCopyIcon
+                            fontSize="small"
+                          />
+                        </IconButton>
                       </Tooltip>
 
-                      <Tooltip title="Delete">
-                        <span>
-                          <IconButton
-                            size="small"
-                            color="error"
-                            disabled={
-                              loading
-                            }
-                            onClick={() =>
-                              void deleteTemplate(
-                                template,
-                              )
-                            }
-                          >
-                            <DeleteIcon
-                              fontSize="small"
-                            />
-                          </IconButton>
-                        </span>
+                      <Tooltip
+                        title="Delete"
+                      >
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() =>
+                            void remove(
+                              template,
+                            )
+                          }
+                        >
+                          <DeleteIcon
+                            fontSize="small"
+                          />
+                        </IconButton>
                       </Tooltip>
                     </Stack>
                   </ListItemButton>
@@ -698,7 +645,7 @@ export default function Studio() {
               <AddIcon />
             }
             onClick={
-              newTemplate
+              createNew
             }
           >
             New Template
@@ -706,7 +653,9 @@ export default function Studio() {
 
           <Button
             onClick={() =>
-              setLoadOpen(false)
+              setDialogOpen(
+                false,
+              )
             }
           >
             Close
@@ -716,37 +665,49 @@ export default function Studio() {
 
       <Snackbar
         open={
-          Boolean(message)
+          Boolean(
+            message,
+          )
         }
         autoHideDuration={
           3000
         }
-        onClose={() =>
-          setMessage(null)
+        message={
+          message
         }
-        message={message}
+        onClose={() =>
+          setMessage(
+            null,
+          )
+        }
       />
 
       <Snackbar
         open={
-          Boolean(error)
+          Boolean(
+            error,
+          )
         }
         autoHideDuration={
           6000
         }
         onClose={() =>
-          setError(null)
+          setError(
+            null,
+          )
         }
       >
         <Alert
           severity="error"
           onClose={() =>
-            setError(null)
+            setError(
+              null,
+            )
           }
         >
           {error}
         </Alert>
       </Snackbar>
-    </Box>
+    </>
   )
 }
