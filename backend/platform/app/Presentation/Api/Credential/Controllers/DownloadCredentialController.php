@@ -6,36 +6,84 @@ namespace App\Presentation\Api\Credential\Controllers;
 
 use App\Core\Credential\Models\Credential;
 use App\Core\Credential\Services\GenerateCredentialPdf;
+use App\Core\Credential\Services\GenerateFabricCredentialPdf;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 final class DownloadCredentialController extends Controller
 {
     public function __construct(
-        private readonly GenerateCredentialPdf $pdf,
+        private readonly GenerateCredentialPdf $legacyPdf,
+        private readonly GenerateFabricCredentialPdf $fabricPdf,
     ) {
     }
 
-    public function __invoke(string $uuid): Response
-    {
-        $credential = Credential::query()
-            ->where('uuid', $uuid)
-            ->firstOrFail();
+    public function __invoke(
+        string $uuid,
+    ): BinaryFileResponse {
+        $credential =
+            Credential::query()
+                ->where(
+                    'uuid',
+                    $uuid
+                )
+                ->firstOrFail();
+
+        $isFabric =
+            $credential->document_template_id
+                !== null;
 
         if (
-            empty($credential->pdf_path) ||
-            ! Storage::disk('public')->exists($credential->pdf_path)
+            empty(
+                $credential->pdf_path
+            )
+            ||
+            !Storage::disk(
+                'public'
+            )->exists(
+                $credential->pdf_path
+            )
         ) {
-            $this->pdf->execute($credential);
+            if ($isFabric) {
+                $this->fabricPdf->execute(
+                    $credential
+                );
+            } else {
+                $this->legacyPdf->execute(
+                    $credential
+                );
+            }
 
             $credential->refresh();
         }
 
+        $path =
+            $credential->pdf_path;
+
+        abort_if(
+            !$path ||
+            !Storage::disk(
+                'public'
+            )->exists(
+                $path
+            ),
+            404,
+            'Credential PDF was not generated.'
+        );
+
         return response()->download(
-            storage_path(
-                'app/public/' . $credential->pdf_path
-            )
+            Storage::disk(
+                'public'
+            )->path(
+                $path
+            ),
+            $credential->credential_number
+                . '.pdf',
+            [
+                'Content-Type' =>
+                    'application/pdf',
+            ]
         );
     }
 }

@@ -1,0 +1,4 @@
+﻿"participant_code","first_name","last_name","email","phone","date_of_birth","gender","country"
+"IMPORT-001","Marie","Kabongo","marie.import@example.test","+243810000001","2001-04-15","Female","DRC"
+"IMPORT-002","Jean","Ilunga","jean.import@example.test","+243810000002","1999-10-03","Male","DRC"
+"IMPORT-003","Amina","Mbuyi","amina.import@example.test","+243810000003","2000-07-20","Female","DRC"

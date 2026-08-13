@@ -21,10 +21,10 @@ export interface Credential {
 }
 
 export interface IssueFabricCredentialPayload {
-  participant_id: number
-  program_id: number
-  session_id: number
-  document_template_id: number
+  participant_uuid: string
+  program_uuid: string
+  session_uuid: string
+  document_template_uuid: string
 
   credential_type: string
 

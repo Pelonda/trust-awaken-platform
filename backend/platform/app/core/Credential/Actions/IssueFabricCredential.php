@@ -532,49 +532,141 @@ final readonly class IssueFabricCredential
     */
 
     private function resolveQrObjects(
-        array $canvas,
-        Credential $credential
-    ): array {
-        if (
-            !isset(
-                $canvas['objects']
-            ) ||
-            !is_array(
-                $canvas['objects']
-            )
+    array $canvas,
+    Credential $credential
+): array {
+    /*
+    |--------------------------------------------------------------------------
+    | Legacy / Active-Page Objects
+    |--------------------------------------------------------------------------
+    |
+    | Keep top-level objects resolved for V1 compatibility and consumers
+    | that still use the active-page representation.
+    |
+    */
+
+    if (
+        isset($canvas['objects']) &&
+        is_array($canvas['objects'])
+    ) {
+        $canvas['objects'] =
+            $this->resolveQrObjectCollection(
+                $canvas['objects'],
+                $credential
+            );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Template Schema V2 Pages
+    |--------------------------------------------------------------------------
+    |
+    | pages[].objects is authoritative for V2 documents.
+    |
+    | This is particularly important for:
+    |
+    | ID Card
+    |   Front
+    |   Back -> verification QR
+    |
+    */
+
+    if (
+        isset($canvas['pages']) &&
+        is_array($canvas['pages'])
+    ) {
+        foreach (
+            $canvas['pages']
+            as $pageIndex => $page
         ) {
-            return $canvas;
+            if (
+                !is_array($page)
+            ) {
+                continue;
+            }
+
+            if (
+                !isset($page['objects']) ||
+                !is_array($page['objects'])
+            ) {
+                continue;
+            }
+
+            $page['objects'] =
+                $this->resolveQrObjectCollection(
+                    $page['objects'],
+                    $credential
+                );
+
+            $canvas['pages'][
+                $pageIndex
+            ] =
+                $page;
+        }
+    }
+
+    return $canvas;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Resolve QR Object Collection
+|--------------------------------------------------------------------------
+*/
+
+private function resolveQrObjectCollection(
+    array $objects,
+    Credential $credential
+): array {
+    foreach (
+        $objects
+        as $index => $object
+    ) {
+        if (
+            !is_array($object)
+        ) {
+            continue;
         }
 
-        foreach (
-            $canvas['objects']
-            as $index => $object
+        /*
+         * Support nested Fabric groups.
+         */
+
+        if (
+            isset($object['objects']) &&
+            is_array($object['objects'])
         ) {
-            if (
-                !is_array(
-                    $object
-                )
-            ) {
-                continue;
-            }
+            $object['objects'] =
+                $this->resolveQrObjectCollection(
+                    $object['objects'],
+                    $credential
+                );
+        }
 
-            if (
-                (
-                    $object[
-                        'awakenType'
-                    ]
-                    ?? null
-                )
-                !==
-                'verification-qr'
-            ) {
-                continue;
-            }
-
+        if (
+            (
+                $object[
+                    'awakenType'
+                ]
+                ?? null
+            ) ===
+            'verification-qr'
+        ) {
             /*
-             * Preserve position, dimensions,
-             * scale, rotation and designer
-             * styling.
+             * Preserve all designer geometry:
+             *
+             * left
+             * top
+             * width
+             * height
+             * scaleX
+             * scaleY
+             * angle
+             * opacity
+             * styling
+             *
+             * Only credential-specific data
+             * is injected here.
              */
 
             $object[
@@ -609,17 +701,16 @@ final readonly class IssueFabricCredential
             ] =
                 $credential
                     ->verification_code;
-
-            $canvas[
-                'objects'
-            ][
-                $index
-            ] =
-                $object;
         }
 
-        return $canvas;
+        $objects[
+            $index
+        ] =
+            $object;
     }
+
+    return $objects;
+}
 
 
     /*

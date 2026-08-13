@@ -1,6 +1,24 @@
-import { useMemo, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { GridColDef } from '@mui/x-data-grid'
+import {
+  useMemo,
+  useState,
+} from 'react'
+
+import {
+  Box,
+  Button,
+  Stack,
+} from '@mui/material'
+
+import UploadFileIcon from '@mui/icons-material/UploadFile'
+
+import {
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query'
+
+import type {
+  GridColDef,
+} from '@mui/x-data-grid'
 
 import AppToolbar from '../../components/common/AppToolbar'
 import AppSkeleton from '../../components/common/AppSkeleton'
@@ -10,120 +28,307 @@ import ConfirmDialog from '../../components/dialogs/ConfirmDialog'
 import AppDataGrid from '../../components/tables/AppDataGrid'
 import * as Toast from '../../components/common/AppToast'
 
-import { deleteParticipant } from './api'
-import { useParticipants } from './hooks'
+import {
+  deleteParticipant,
+} from './api'
+
+import {
+  useParticipants,
+} from './hooks'
+
 import ParticipantDialog from './ParticipantDialog'
+import ParticipantImportDialog from './ParticipantImportDialog'
+
+import type {
+  Participant,
+} from './types'
 
 export default function ParticipantsPage() {
 
-  const queryClient = useQueryClient()
+  const queryClient =
+    useQueryClient()
 
-  const { data, isLoading } = useParticipants()
+  const {
+    data,
+    isLoading,
+  } =
+    useParticipants()
 
-  const [search, setSearch] = useState('')
-  const [createOpen, setCreateOpen] = useState(false)
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [selectedParticipant, setSelectedParticipant] = useState<any>(null)
+  const [
+    search,
+    setSearch,
+  ] =
+    useState('')
 
-  const deleteMutation = useMutation({
+  const [
+    createOpen,
+    setCreateOpen,
+  ] =
+    useState(false)
 
-    mutationFn: deleteParticipant,
+  const [
+    importOpen,
+    setImportOpen,
+  ] =
+    useState(false)
 
-    onSuccess: async () => {
+  const [
+    confirmOpen,
+    setConfirmOpen,
+  ] =
+    useState(false)
 
-      Toast.success(
-        'Participant deleted successfully.'
-      )
-
-      await queryClient.invalidateQueries({
-        queryKey: ['participants'],
-      })
-
-    },
-
-    onError: () => {
-
-      Toast.error(
-        'Unable to delete participant.'
-      )
-
-    },
-
-  })
-
-  const rows = useMemo(() => {
-
-    if (!data?.data) {
-      return []
-    }
-
-    return data.data.filter((participant: any) =>
-
-      participant.first_name
-        ?.toLowerCase()
-        .includes(search.toLowerCase()) ||
-
-      participant.last_name
-        ?.toLowerCase()
-        .includes(search.toLowerCase()) ||
-
-      participant.participant_code
-        ?.toLowerCase()
-        .includes(search.toLowerCase())
-
+  const [
+    selectedParticipant,
+    setSelectedParticipant,
+  ] =
+    useState<Participant | null>(
+      null,
     )
 
-  }, [data, search])
+  /*
+  |--------------------------------------------------------------------------
+  | Delete Participant
+  |--------------------------------------------------------------------------
+  */
 
-  const columns: GridColDef[] = [
+  const deleteMutation =
+    useMutation({
 
-    {
-      field: 'participant_code',
-      headerName: 'Code',
-      flex: 1,
-    },
+      mutationFn:
+        deleteParticipant,
 
-    {
-      field: 'first_name',
-      headerName: 'First Name',
-      flex: 1,
-    },
+      onSuccess:
+        async () => {
 
-    {
-      field: 'last_name',
-      headerName: 'Last Name',
-      flex: 1,
-    },
+          Toast.success(
+            'Participant deleted successfully.',
+          )
 
-    {
-      field: 'email',
-      headerName: 'Email',
-      flex: 2,
-    },
+          await queryClient.invalidateQueries({
+            queryKey: [
+              'participants',
+            ],
+          })
 
-    {
-      field: 'status',
-      headerName: 'Status',
-      flex: 1,
-    },
+        },
 
-  ]
+      onError:
+        () => {
 
-  if (isLoading) {
-    return <AppSkeleton />
+          Toast.error(
+            'Unable to delete participant.',
+          )
+
+        },
+
+    })
+
+  /*
+  |--------------------------------------------------------------------------
+  | Rows
+  |--------------------------------------------------------------------------
+  */
+
+  const rows =
+    useMemo(
+      () => {
+
+        if (
+          !data?.data
+        ) {
+          return []
+        }
+
+        const query =
+          search
+            .trim()
+            .toLowerCase()
+
+        if (
+          query === ''
+        ) {
+          return data.data
+        }
+
+        return data.data.filter(
+          (
+            participant:
+              Participant,
+          ) => {
+
+            const code =
+              participant
+                .participant_code
+                ?.toLowerCase() ??
+              ''
+
+            const firstName =
+              participant
+                .first_name
+                ?.toLowerCase() ??
+              ''
+
+            const lastName =
+              participant
+                .last_name
+                ?.toLowerCase() ??
+              ''
+
+            const email =
+              participant
+                .email
+                ?.toLowerCase() ??
+              ''
+
+            return (
+              code.includes(
+                query,
+              ) ||
+              firstName.includes(
+                query,
+              ) ||
+              lastName.includes(
+                query,
+              ) ||
+              email.includes(
+                query,
+              )
+            )
+
+          },
+        )
+
+      },
+      [
+        data,
+        search,
+      ],
+    )
+
+  /*
+  |--------------------------------------------------------------------------
+  | Columns
+  |--------------------------------------------------------------------------
+  */
+
+  const columns:
+    GridColDef[] = [
+
+      {
+        field:
+          'participant_code',
+
+        headerName:
+          'Code',
+
+        flex:
+          1,
+
+        minWidth:
+          130,
+      },
+
+      {
+        field:
+          'first_name',
+
+        headerName:
+          'First Name',
+
+        flex:
+          1,
+
+        minWidth:
+          140,
+      },
+
+      {
+        field:
+          'last_name',
+
+        headerName:
+          'Last Name',
+
+        flex:
+          1,
+
+        minWidth:
+          140,
+      },
+
+      {
+        field:
+          'email',
+
+        headerName:
+          'Email',
+
+        flex:
+          2,
+
+        minWidth:
+          220,
+      },
+
+      {
+        field:
+          'status',
+
+        headerName:
+          'Status',
+
+        flex:
+          1,
+
+        minWidth:
+          120,
+      },
+
+    ]
+
+  /*
+  |--------------------------------------------------------------------------
+  | Loading
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    isLoading
+  ) {
+    return (
+      <AppSkeleton />
+    )
   }
 
-  if (rows.length === 0) {
+  /*
+  |--------------------------------------------------------------------------
+  | Toolbar Content
+  |--------------------------------------------------------------------------
+  */
 
-    return (
+  const toolbarContent = (
 
-      <>
+    <Stack
+      spacing={1.5}
+    >
 
-        <AppToolbar
-          title="Participants"
-          subtitle="Manage participants"
-          buttonText="New Participant"
-          onAdd={() => setCreateOpen(true)}
+      <Stack
+        direction={{
+          xs: 'column',
+          sm: 'row',
+        }}
+        spacing={1}
+        alignItems={{
+          xs: 'stretch',
+          sm: 'center',
+        }}
+      >
+
+        <Box
+          sx={{
+            flex: 1,
+          }}
         >
 
           <SearchBar
@@ -131,25 +336,108 @@ export default function ParticipantsPage() {
             onChange={setSearch}
           />
 
+        </Box>
+
+        <Button
+          variant="outlined"
+          startIcon={
+            <UploadFileIcon />
+          }
+          onClick={
+            () =>
+              setImportOpen(
+                true,
+              )
+          }
+        >
+          Import CSV / Excel
+        </Button>
+
+      </Stack>
+
+    </Stack>
+
+  )
+
+  /*
+  |--------------------------------------------------------------------------
+  | Empty State
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    rows.length === 0
+  ) {
+    return (
+
+      <>
+
+        <AppToolbar
+          title="Participants"
+          subtitle="Manage participants and program enrollment"
+          buttonText="New Participant"
+          onAdd={
+            () =>
+              setCreateOpen(
+                true,
+              )
+          }
+        >
+
+          {toolbarContent}
+
         </AppToolbar>
 
         <EmptyState
-          title="No Participants"
-          subtitle="Create your first participant."
+          title={
+            search
+              ? 'No Matching Participants'
+              : 'No Participants'
+          }
+          subtitle={
+            search
+              ? 'No participants match your search.'
+              : 'Add a participant manually or import a CSV / Excel file.'
+          }
           button="New Participant"
-          onClick={() => setCreateOpen(true)}
+          onClick={
+            () =>
+              setCreateOpen(
+                true,
+              )
+          }
         />
 
         <ParticipantDialog
           open={createOpen}
-          onClose={() => setCreateOpen(false)}
+          onClose={
+            () =>
+              setCreateOpen(
+                false,
+              )
+          }
+        />
+
+        <ParticipantImportDialog
+          open={importOpen}
+          onClose={
+            () =>
+              setImportOpen(
+                false,
+              )
+          }
         />
 
       </>
 
     )
-
   }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Participant List
+  |--------------------------------------------------------------------------
+  */
 
   return (
 
@@ -157,66 +445,170 @@ export default function ParticipantsPage() {
 
       <AppToolbar
         title="Participants"
-        subtitle="Manage participants"
+        subtitle="Manage participants and program enrollment"
         buttonText="New Participant"
-        onAdd={() => setCreateOpen(true)}
-        onRefresh={() => window.location.reload()}
-        onExport={() => Toast.info('Export coming soon.')}
-        onFilter={() => Toast.info('Filter coming soon.')}
+        onAdd={
+          () =>
+            setCreateOpen(
+              true,
+            )
+        }
+        onRefresh={
+          async () => {
+
+            await queryClient.invalidateQueries({
+              queryKey: [
+                'participants',
+              ],
+            })
+
+          }
+        }
+        onExport={
+          () =>
+            Toast.info(
+              'Participant export coming soon.',
+            )
+        }
+        onFilter={
+          () =>
+            Toast.info(
+              'Participant filters coming soon.',
+            )
+        }
       >
 
-        <SearchBar
-          value={search}
-          onChange={setSearch}
-        />
+        {toolbarContent}
 
       </AppToolbar>
 
       <AppDataGrid
         rows={rows}
         columns={columns}
-        onEdit={(participant) =>
-          console.log('Edit', participant)
+        onEdit={
+          participant =>
+            console.log(
+              'Edit',
+              participant,
+            )
         }
-        onDelete={(participant) => {
-          setSelectedParticipant(participant)
-          setConfirmOpen(true)
-        }}
+        onDelete={
+          participant => {
+
+            setSelectedParticipant(
+              participant,
+            )
+
+            setConfirmOpen(
+              true,
+            )
+
+          }
+        }
       />
+
+      {/*
+      |--------------------------------------------------------------------------
+      | Delete Confirmation
+      |--------------------------------------------------------------------------
+      */}
 
       <ConfirmDialog
         open={confirmOpen}
         title="Delete Participant"
-        message={`Delete "${selectedParticipant?.first_name} ${selectedParticipant?.last_name}"?`}
-        loading={deleteMutation.isPending}
-        onCancel={() => {
-          setConfirmOpen(false)
-          setSelectedParticipant(null)
-        }}
-        onConfirm={() => {
+        message={
+          `Delete "${
+            selectedParticipant
+              ?.first_name ??
+            ''
+          } ${
+            selectedParticipant
+              ?.last_name ??
+            ''
+          }"?`
+        }
+        loading={
+          deleteMutation
+            .isPending
+        }
+        onCancel={
+          () => {
 
-          if (!selectedParticipant) return
+            setConfirmOpen(
+              false,
+            )
 
-          deleteMutation.mutate(
-            selectedParticipant.uuid,
-            {
-              onSuccess: () => {
-                setConfirmOpen(false)
-                setSelectedParticipant(null)
-              },
+            setSelectedParticipant(
+              null,
+            )
+
+          }
+        }
+        onConfirm={
+          () => {
+
+            if (
+              !selectedParticipant
+            ) {
+              return
             }
-          )
 
-        }}
+            deleteMutation.mutate(
+              selectedParticipant
+                .uuid,
+              {
+                onSuccess:
+                  () => {
+
+                    setConfirmOpen(
+                      false,
+                    )
+
+                    setSelectedParticipant(
+                      null,
+                    )
+
+                  },
+              },
+            )
+
+          }
+        }
       />
+
+      {/*
+      |--------------------------------------------------------------------------
+      | Manual Participant
+      |--------------------------------------------------------------------------
+      */}
 
       <ParticipantDialog
         open={createOpen}
-        onClose={() => setCreateOpen(false)}
+        onClose={
+          () =>
+            setCreateOpen(
+              false,
+            )
+        }
+      />
+
+      {/*
+      |--------------------------------------------------------------------------
+      | CSV / Excel Import
+      |--------------------------------------------------------------------------
+      */}
+
+      <ParticipantImportDialog
+        open={importOpen}
+        onClose={
+          () =>
+            setImportOpen(
+              false,
+            )
+        }
       />
 
     </>
 
   )
-
 }

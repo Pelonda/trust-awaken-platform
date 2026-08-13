@@ -1,9 +1,22 @@
-import { useMutation } from '@tanstack/react-query'
+import {
+  useMutation,
+} from '@tanstack/react-query'
 
-import { createCredential } from './api'
+import {
+  createCredential,
+  issueFabricCredential,
+} from './api'
 
 export function useCreateCredential() {
   return useMutation({
-    mutationFn: createCredential,
+    mutationFn:
+      createCredential,
+  })
+}
+
+export function useIssueFabricCredential() {
+  return useMutation({
+    mutationFn:
+      issueFabricCredential,
   })
 }

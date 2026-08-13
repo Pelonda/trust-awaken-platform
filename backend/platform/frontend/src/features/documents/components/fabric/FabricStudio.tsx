@@ -36,6 +36,24 @@ import FabricTemplateManager from './FabricTemplateManager'
 import FabricTextToolbar from './FabricTextToolbar'
 import FabricVariablesPanel from './FabricVariablesPanel'
 
+import FabricDocumentSetup, {
+  type DocumentSetupState,
+  type DocumentSide,
+} from './FabricDocumentSetup'
+
+import {
+  createBlankFabricPage,
+  createFabricPageState,
+  loadFabricPage,
+  resizeFabricPage,
+  serializeFabricPage,
+  type FabricPageState,
+} from './FabricPageManager'
+
+import type {
+  SavedFabricTemplate,
+} from '../../services/FabricTemplateService'
+
 interface AwakenFabricObject
   extends FabricObject {
   awakenProtected?: boolean
@@ -44,9 +62,19 @@ interface AwakenFabricObject
   awakenBrandAsset?: string
   awakenAssetUuid?: string
   awakenAssetPath?: string
+
+  awakenQrCodePath?: string
+  awakenVerificationUrl?: string
+  awakenVerificationCode?: string
 }
 
 export default function FabricStudio() {
+  /*
+  |--------------------------------------------------------------------------
+  | Canvas References
+  |--------------------------------------------------------------------------
+  */
+
   const canvasElementRef =
     useRef<HTMLCanvasElement | null>(
       null,
@@ -62,60 +90,146 @@ export default function FabricStudio() {
       null,
     )
 
+  /*
+  |--------------------------------------------------------------------------
+  | Canvas Ready
+  |--------------------------------------------------------------------------
+  */
+
   const [
     canvasReady,
     setCanvasReady,
-  ] = useState(false)
+  ] =
+    useState(false)
 
-  useEffect(() => {
-    if (!canvasElementRef.current) {
-      return
-    }
+  /*
+  |--------------------------------------------------------------------------
+  | Document V2 State
+  |--------------------------------------------------------------------------
+  */
 
-    const canvas =
-      new Canvas(
-        canvasElementRef.current,
-        {
-          width: 1000,
-          height: 650,
-
-          backgroundColor:
-            '#ffffff',
-
-          preserveObjectStacking:
-            true,
-
-          selection:
-            true,
-        },
-      )
-
-    canvasRef.current =
-      canvas
-
-    configureCanvas(
-      canvas,
+  const [
+    activeSide,
+    setActiveSide,
+  ] =
+    useState<DocumentSide>(
+      'front',
     )
 
-    createBlankCanvas(
-      canvas,
+  const [
+    documentSetup,
+    setDocumentSetup,
+  ] =
+    useState<
+      DocumentSetupState | null
+    >(
+      null,
     )
 
-    setCanvasReady(
-      true,
+  /*
+   * The page state lives outside React
+   * rendering because Fabric itself owns
+   * the active visual canvas.
+   *
+   * React only needs to know which side
+   * is currently active.
+   */
+
+  const pageStateRef =
+    useRef<FabricPageState>(
+      createFabricPageState(
+        1000,
+        650,
+      ),
     )
 
-    return () => {
-      setCanvasReady(
-        false,
-      )
+  /*
+  |--------------------------------------------------------------------------
+  | Initialize Fabric
+  |--------------------------------------------------------------------------
+  */
 
-      canvas.dispose()
+  useEffect(
+    () => {
+      if (
+        !canvasElementRef.current
+      ) {
+        return
+      }
+
+      const canvas =
+        new Canvas(
+          canvasElementRef.current,
+          {
+            width:
+              1000,
+
+            height:
+              650,
+
+            backgroundColor:
+              '#ffffff',
+
+            preserveObjectStacking:
+              true,
+
+            selection:
+              true,
+          },
+        )
 
       canvasRef.current =
-        null
-    }
-  }, [])
+        canvas
+
+      configureCanvas(
+        canvas,
+      )
+
+      createBlankCanvas(
+        canvas,
+      )
+
+      /*
+       * Initialize the Front page from
+       * the actual Fabric canvas.
+       */
+
+      pageStateRef.current =
+        createFabricPageState(
+          canvas.getWidth(),
+          canvas.getHeight(),
+        )
+
+      pageStateRef.current
+        .pages.front =
+        serializeFabricPage(
+          canvas,
+          'front',
+        )
+
+      setCanvasReady(
+        true,
+      )
+
+      return () => {
+        setCanvasReady(
+          false,
+        )
+
+        canvas.dispose()
+
+        canvasRef.current =
+          null
+      }
+    },
+    [],
+  )
+
+  /*
+  |--------------------------------------------------------------------------
+  | Canvas Configuration
+  |--------------------------------------------------------------------------
+  */
 
   function configureCanvas(
     canvas: Canvas,
@@ -130,6 +244,12 @@ export default function FabricStudio() {
       1
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Blank Canvas
+  |--------------------------------------------------------------------------
+  */
+
   function createBlankCanvas(
     canvas: Canvas,
   ) {
@@ -143,6 +263,12 @@ export default function FabricStudio() {
     canvas.requestRenderAll()
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | New Template
+  |--------------------------------------------------------------------------
+  */
+
   function newTemplate() {
     const canvas =
       canvasRef.current
@@ -154,7 +280,203 @@ export default function FabricStudio() {
     createBlankCanvas(
       canvas,
     )
+
+    pageStateRef.current =
+      createFabricPageState(
+        canvas.getWidth(),
+        canvas.getHeight(),
+      )
+
+    pageStateRef.current
+      .pages.front =
+      serializeFabricPage(
+        canvas,
+        'front',
+      )
+
+    pageStateRef.current
+      .activePage =
+      'front'
+
+    setActiveSide(
+      'front',
+    )
+
+    setDocumentSetup(
+      null,
+    )
+
+    canvas.requestRenderAll()
   }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Side Switching
+  |--------------------------------------------------------------------------
+  |
+  | Only one Fabric Canvas exists in the DOM.
+  |
+  | Before switching:
+  |
+  | 1. Serialize the current side.
+  | 2. Store it in pageStateRef.
+  | 3. Load the requested side.
+  |
+  */
+
+  async function switchSide(
+    nextSide:
+      DocumentSide,
+  ) {
+    const canvas =
+      canvasRef.current
+
+    if (!canvas) {
+      return
+    }
+
+    if (
+      nextSide ===
+      activeSide
+    ) {
+      return
+    }
+
+    /*
+     * Save current side.
+     */
+
+    pageStateRef.current.pages[
+      activeSide
+    ] =
+      serializeFabricPage(
+        canvas,
+        activeSide,
+      )
+
+    /*
+     * Find requested side.
+     */
+
+    const nextPage =
+      pageStateRef.current.pages[
+        nextSide
+      ]
+
+    /*
+     * Restore requested side.
+     */
+
+    await loadFabricPage(
+      canvas,
+      nextPage,
+    )
+
+    /*
+     * Restore AWAKEN visual controls
+     * after Fabric deserialization.
+     */
+
+    applyControlsToCanvas(
+      canvas,
+    )
+
+    pageStateRef.current
+      .activePage =
+      nextSide
+
+    setActiveSide(
+      nextSide,
+    )
+
+    setDocumentSetup(
+  current =>
+    current
+      ? {
+          ...current,
+
+          activeSide:
+            nextSide,
+        }
+      : current,
+)
+
+    canvas.requestRenderAll()
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Document Setup
+  |--------------------------------------------------------------------------
+  */
+
+  function handleDocumentSetup(
+    setup:
+      DocumentSetupState,
+  ) {
+    const canvas =
+      canvasRef.current
+
+    if (!canvas) {
+      return
+    }
+
+    setDocumentSetup(
+      setup,
+    )
+
+    /*
+     * Both card sides always share the
+     * same physical dimensions.
+     */
+
+    pageStateRef.current
+      .pages.front =
+      resizeFabricPage(
+        pageStateRef.current
+          .pages.front,
+
+        setup.canvasWidth,
+        setup.canvasHeight,
+      )
+
+    pageStateRef.current
+      .pages.back =
+      resizeFabricPage(
+        pageStateRef.current
+          .pages.back,
+
+        setup.canvasWidth,
+        setup.canvasHeight,
+      )
+
+    /*
+     * FabricDocumentSetup has already
+     * resized the active Canvas before
+     * calling onChange().
+     *
+     * Serialize it now so page state
+     * receives the new dimensions.
+     */
+
+    pageStateRef.current.pages[
+      activeSide
+    ] =
+      serializeFabricPage(
+        canvas,
+        activeSide,
+      )
+
+    pageStateRef.current
+      .activePage =
+      activeSide
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Text
+  |--------------------------------------------------------------------------
+  */
 
   function addText() {
     const canvas =
@@ -168,10 +490,14 @@ export default function FabricStudio() {
       new IText(
         'New Text',
         {
-          left: 200,
-          top: 200,
+          left:
+            200,
 
-          fontSize: 36,
+          top:
+            200,
+
+          fontSize:
+            36,
 
           fontFamily:
             'Arial',
@@ -203,6 +529,12 @@ export default function FabricStudio() {
     text.selectAll()
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Rectangle
+  |--------------------------------------------------------------------------
+  */
+
   function addRectangle() {
     const canvas =
       canvasRef.current
@@ -213,11 +545,17 @@ export default function FabricStudio() {
 
     const rectangle =
       new Rect({
-        left: 250,
-        top: 250,
+        left:
+          250,
 
-        width: 200,
-        height: 120,
+        top:
+          250,
+
+        width:
+          200,
+
+        height:
+          120,
 
         fill:
           '#dbeafe',
@@ -225,10 +563,14 @@ export default function FabricStudio() {
         stroke:
           '#2563eb',
 
-        strokeWidth: 2,
+        strokeWidth:
+          2,
 
-        rx: 4,
-        ry: 4,
+        rx:
+          4,
+
+        ry:
+          4,
       })
 
     applyObjectControls(
@@ -246,9 +588,21 @@ export default function FabricStudio() {
     canvas.requestRenderAll()
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Image Picker
+  |--------------------------------------------------------------------------
+  */
+
   function openImagePicker() {
     fileInputRef.current?.click()
   }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Image Upload
+  |--------------------------------------------------------------------------
+  */
 
   async function addImage(
     file: File,
@@ -278,6 +632,7 @@ export default function FabricStudio() {
       /*
        * Upload permanently to Laravel.
        */
+
       const asset =
         await AssetService.create(
           file,
@@ -300,13 +655,12 @@ export default function FabricStudio() {
       )
 
       /*
-       * Do NOT force:
+       * Do not force crossOrigin here.
        *
-       * crossOrigin: 'anonymous'
-       *
-       * Public Laravel storage is being
-       * loaded directly for display.
+       * Laravel public storage is loaded
+       * directly for display.
        */
+
       const image =
         await FabricImage.fromURL(
           imageUrl,
@@ -319,10 +673,12 @@ export default function FabricStudio() {
         300
 
       const originalWidth =
-        image.width || 1
+        image.width ||
+        1
 
       const originalHeight =
-        image.height || 1
+        image.height ||
+        1
 
       const scale =
         Math.min(
@@ -336,8 +692,11 @@ export default function FabricStudio() {
         )
 
       image.set({
-        left: 300,
-        top: 200,
+        left:
+          300,
+
+        top:
+          200,
 
         scaleX:
           scale,
@@ -377,7 +736,9 @@ export default function FabricStudio() {
       image.setCoords()
 
       canvas.requestRenderAll()
-    } catch (error) {
+    } catch (
+      error
+    ) {
       console.error(
         'Unable to upload/load image:',
         error,
@@ -386,14 +747,19 @@ export default function FabricStudio() {
       if (
         typeof error ===
           'object' &&
-        error !== null &&
-        'response' in error
+        error !==
+          null &&
+        'response' in
+          error
       ) {
         const apiError =
           error as {
             response?: {
-              status?: number
-              data?: unknown
+              status?:
+                number
+
+              data?:
+                unknown
             }
           }
 
@@ -412,6 +778,12 @@ export default function FabricStudio() {
     }
   }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Image Input
+  |--------------------------------------------------------------------------
+  */
+
   function handleImageChange(
     event:
       ChangeEvent<HTMLInputElement>,
@@ -428,66 +800,209 @@ export default function FabricStudio() {
     )
 
     /*
-     * Allows selecting the same
-     * file again later.
+     * Allow selecting the same file
+     * again later.
      */
+
     event.target.value =
       ''
   }
 
-  function handleTemplateLoaded() {
-    const canvas =
-      canvasRef.current
+  /*
+  |--------------------------------------------------------------------------
+  | Template Loaded
+  |--------------------------------------------------------------------------
+  */
 
-    if (!canvas) {
-      return
+ function handleTemplateLoaded(
+  template:
+    SavedFabricTemplate,
+) {
+  const canvas =
+    canvasRef.current
+
+  if (!canvas) {
+    return
+  }
+
+  const savedPages =
+    Array.isArray(
+      template.canvas.pages,
+    )
+      ? template.canvas.pages
+      : []
+
+  const frontPage =
+    savedPages.find(
+      page =>
+        page.key ===
+        'front',
+    )
+
+  const backPage =
+    savedPages.find(
+      page =>
+        page.key ===
+        'back',
+    )
+
+  /*
+   * V2 template.
+   */
+
+  if (frontPage) {
+    pageStateRef.current.pages.front = {
+      ...frontPage,
+      key:
+        'front',
     }
 
-    canvas.backgroundColor =
-      canvas.backgroundColor ??
-      '#ffffff'
-
-    canvas
-      .getObjects()
-      .forEach(
-        object => {
-          applyObjectControls(
-            object,
+    pageStateRef.current.pages.back =
+      backPage
+        ? {
+            ...backPage,
+            key:
+              'back',
+          }
+        : createBlankFabricPage(
+            'back',
+            frontPage.canvas_width,
+            frontPage.canvas_height,
           )
 
-          const awakenObject =
-            object as
-              AwakenFabricObject
+    pageStateRef.current.activePage =
+      'front'
 
-          if (
-            awakenObject
-              .awakenProtected
-          ) {
-            object.set({
-              borderColor:
-                '#7c3aed',
+    setActiveSide(
+      'front',
+    )
 
-              cornerColor:
-                '#7c3aed',
+    /*
+     * Restore V2 setup metadata.
+     */
 
-              cornerStrokeColor:
-                '#ffffff',
-            })
-          }
+    const paper =
+      template.canvas.paper
 
-          object.setCoords()
-        },
+    if (paper) {
+      setDocumentSetup({
+        schemaVersion:
+          2,
+
+        documentType:
+          template.document_type ??
+          template.canvas.document_type ??
+          'certificate',
+
+        language:
+          template.language ??
+          template.canvas.language ??
+          'en',
+
+        paperSize:
+          template.paper_size ??
+          paper.preset ??
+          'custom',
+
+        orientation:
+          template.orientation ??
+          paper.orientation ??
+          'landscape',
+
+        paperWidth:
+          Number(
+            template.paper_width ??
+            paper.width,
+          ),
+
+        paperHeight:
+          Number(
+            template.paper_height ??
+            paper.height,
+          ),
+
+        paperUnit:
+          template.paper_unit ??
+          paper.unit ??
+          'px',
+
+        canvasWidth:
+          frontPage.canvas_width,
+
+        canvasHeight:
+          frontPage.canvas_height,
+
+        activeSide:
+          'front',
+
+        hasBackSide:
+          Boolean(
+            backPage,
+          ),
+      })
+    }
+  } else {
+    /*
+     * Legacy V1 template.
+     *
+     * FabricTemplateManager already loaded
+     * its single canvas. Capture that as
+     * the Front page.
+     */
+
+    pageStateRef.current =
+      createFabricPageState(
+        canvas.getWidth(),
+        canvas.getHeight(),
       )
 
-    canvas.discardActiveObject()
+    pageStateRef.current.pages.front =
+      serializeFabricPage(
+        canvas,
+        'front',
+      )
 
-    canvas.requestRenderAll()
+    pageStateRef.current.activePage =
+      'front'
+
+    setActiveSide(
+      'front',
+    )
+
+    setDocumentSetup(
+      null,
+    )
   }
+
+  canvas.backgroundColor =
+    canvas.backgroundColor ??
+    '#ffffff'
+
+  applyControlsToCanvas(
+    canvas,
+  )
+
+  canvas.discardActiveObject()
+
+  canvas.requestRenderAll()
+}
+
+  /*
+  |--------------------------------------------------------------------------
+  | Active Canvas
+  |--------------------------------------------------------------------------
+  */
 
   const activeCanvas =
     canvasReady
       ? canvasRef.current
       : null
+
+  /*
+  |--------------------------------------------------------------------------
+  | Render
+  |--------------------------------------------------------------------------
+  */
 
   return (
     <Box
@@ -511,13 +1026,22 @@ export default function FabricStudio() {
           '#eef2f7',
       }}
     >
+      {/*
+      |--------------------------------------------------------------------------
+      | Toolbar
+      |--------------------------------------------------------------------------
+      */}
+
       <Stack
         direction="row"
         spacing={1}
         alignItems="center"
         sx={{
-          px: 2,
-          py: 1,
+          px:
+            2,
+
+          py:
+            1,
 
           bgcolor:
             '#ffffff',
@@ -535,7 +1059,8 @@ export default function FabricStudio() {
         <Typography
           fontWeight={700}
           sx={{
-            mr: 1,
+            mr:
+              1,
           }}
         >
           Trust AWAKEN Studio
@@ -629,9 +1154,46 @@ export default function FabricStudio() {
             canvas={
               activeCanvas
             }
+
+            documentSetup={
+              documentSetup
+            }
+
+            activeSide={
+              activeSide
+            }
+
+            getPages={() => {
+              const canvas =
+                canvasRef.current
+
+              /*
+               * Always serialize the
+               * currently visible side
+               * immediately before Save.
+               */
+
+              if (canvas) {
+                pageStateRef.current
+                  .pages[
+                    activeSide
+                  ] =
+                  serializeFabricPage(
+                    canvas,
+                    activeSide,
+                  )
+              }
+
+              return {
+                ...pageStateRef
+                  .current.pages,
+              }
+            }}
+
             onNew={
               newTemplate
             }
+
             onLoaded={
               handleTemplateLoaded
             }
@@ -639,9 +1201,16 @@ export default function FabricStudio() {
         </Box>
       </Stack>
 
+      {/*
+      |--------------------------------------------------------------------------
+      | Workspace
+      |--------------------------------------------------------------------------
+      */}
+
       <Box
         sx={{
-          flex: 1,
+          flex:
+            1,
 
           minHeight:
             0,
@@ -653,9 +1222,16 @@ export default function FabricStudio() {
             'hidden',
         }}
       >
+        {/*
+        |--------------------------------------------------------------------------
+        | Canvas
+        |--------------------------------------------------------------------------
+        */}
+
         <Box
           sx={{
-            flex: 1,
+            flex:
+              1,
 
             minWidth:
               0,
@@ -672,7 +1248,8 @@ export default function FabricStudio() {
             alignItems:
               'flex-start',
 
-            p: 4,
+            p:
+              4,
           }}
         >
           <Box
@@ -694,6 +1271,12 @@ export default function FabricStudio() {
             />
           </Box>
         </Box>
+
+        {/*
+        |--------------------------------------------------------------------------
+        | Sidebar
+        |--------------------------------------------------------------------------
+        */}
 
         <Box
           sx={{
@@ -718,9 +1301,39 @@ export default function FabricStudio() {
         >
           <Box
             sx={{
-              p: 2,
+              p:
+                2,
             }}
           >
+        <FabricDocumentSetup
+  canvas={
+    activeCanvas
+  }
+
+  value={
+    documentSetup
+  }
+
+  activeSide={
+    activeSide
+  }
+
+  onSideChange={
+    switchSide
+  }
+
+  onChange={
+    handleDocumentSetup
+  }
+/>
+
+            <Divider
+              sx={{
+                my:
+                  2,
+              }}
+            />
+
             <FabricVariablesPanel
               canvas={
                 activeCanvas
@@ -729,7 +1342,8 @@ export default function FabricStudio() {
 
             <Divider
               sx={{
-                my: 2,
+                my:
+                  2,
               }}
             />
 
@@ -741,7 +1355,8 @@ export default function FabricStudio() {
 
             <Divider
               sx={{
-                my: 2,
+                my:
+                  2,
               }}
             />
 
@@ -765,8 +1380,57 @@ export default function FabricStudio() {
   )
 }
 
+/*
+|--------------------------------------------------------------------------
+| Apply AWAKEN Controls
+|--------------------------------------------------------------------------
+*/
+
+function applyControlsToCanvas(
+  canvas: Canvas,
+) {
+  canvas
+    .getObjects()
+    .forEach(
+      object => {
+        applyObjectControls(
+          object,
+        )
+
+        const awakenObject =
+          object as
+            AwakenFabricObject
+
+        if (
+          awakenObject
+            .awakenProtected
+        ) {
+          object.set({
+            borderColor:
+              '#7c3aed',
+
+            cornerColor:
+              '#7c3aed',
+
+            cornerStrokeColor:
+              '#ffffff',
+          })
+        }
+
+        object.setCoords()
+      },
+    )
+}
+
+/*
+|--------------------------------------------------------------------------
+| Object Controls
+|--------------------------------------------------------------------------
+*/
+
 function applyObjectControls(
-  object: FabricObject,
+  object:
+    FabricObject,
 ) {
   object.set({
     cornerColor:
@@ -792,6 +1456,12 @@ function applyObjectControls(
   })
 }
 
+/*
+|--------------------------------------------------------------------------
+| Resolve Asset URL
+|--------------------------------------------------------------------------
+*/
+
 function resolveAssetUrl(
   url: string,
 ): string {
@@ -799,6 +1469,7 @@ function resolveAssetUrl(
    * Keep browser-local resources
    * untouched.
    */
+
   if (
     url.startsWith(
       'data:',
@@ -829,19 +1500,21 @@ function resolveAssetUrl(
      *
      * http://127.0.0.1:8000
      */
+
     const apiOrigin =
       new URL(
         apiUrl,
       ).origin
 
     /*
-     * Backend may accidentally return:
+     * Backend may return:
      *
      * http://localhost/storage/...
      *
-     * For Laravel public storage assets
-     * we always use the API server origin.
+     * Laravel public storage assets
+     * must use the API server origin.
      */
+
     if (
       url.startsWith(
         'http://',
@@ -881,8 +1554,11 @@ function resolveAssetUrl(
      *
      * storage/document-assets/...
      */
+
     const path =
-      url.startsWith('/')
+      url.startsWith(
+        '/',
+      )
         ? url
         : `/${url}`
 
@@ -890,7 +1566,9 @@ function resolveAssetUrl(
       path,
       apiOrigin,
     ).toString()
-  } catch (error) {
+  } catch (
+    error
+  ) {
     console.error(
       'Unable to resolve asset URL:',
       {

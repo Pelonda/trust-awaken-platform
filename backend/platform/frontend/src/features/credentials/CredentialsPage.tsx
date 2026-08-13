@@ -1,6 +1,16 @@
-import { useMemo, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { GridColDef } from '@mui/x-data-grid'
+import {
+  useMemo,
+  useState,
+} from 'react'
+
+import {
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query'
+
+import type {
+  GridColDef,
+} from '@mui/x-data-grid'
 
 import AppDataGrid from '../../components/tables/AppDataGrid'
 import AppSkeleton from '../../components/common/AppSkeleton'
@@ -13,220 +23,542 @@ import * as Toast from '../../components/common/AppToast'
 import CredentialDialog from './CredentialDialog'
 
 import {
-  deleteCredential,
   downloadCredential,
   previewCredential,
+  restoreCredential,
+  revokeCredential,
 } from './api'
 
-import { useCredentials } from './hooks'
+import {
+  useCredentials,
+} from './hooks'
+
+import type {
+  Credential,
+} from './types'
 
 export default function CredentialsPage() {
+  const queryClient =
+    useQueryClient()
 
-  const queryClient = useQueryClient()
+  const {
+    data,
+    isLoading,
+  } =
+    useCredentials()
 
-  const { data, isLoading } = useCredentials()
+  const [
+    search,
+    setSearch,
+  ] =
+    useState('')
 
-  const [search, setSearch] = useState('')
+  const [
+    createOpen,
+    setCreateOpen,
+  ] =
+    useState(false)
 
-  const [createOpen, setCreateOpen] = useState(false)
+  const [
+    confirmOpen,
+    setConfirmOpen,
+  ] =
+    useState(false)
 
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [
+    selectedCredential,
+    setSelectedCredential,
+  ] =
+    useState<
+      Credential | null
+    >(null)
 
-  const [selectedCredential, setSelectedCredential] =
-    useState<any>(null)
+  /*
+  |--------------------------------------------------------------------------
+  | Lifecycle Mutation
+  |--------------------------------------------------------------------------
+  */
 
-  const deleteMutation = useMutation({
+  const lifecycleMutation =
+    useMutation({
+      mutationFn:
+        async (
+          credential:
+            Credential,
+        ) => {
+          if (
+            credential.status ===
+            'revoked'
+          ) {
+            return restoreCredential(
+              credential.uuid,
+            )
+          }
 
-    mutationFn: deleteCredential,
+          return revokeCredential(
+            credential.uuid,
+          )
+        },
 
-    onSuccess: async () => {
+      onSuccess:
+        async (
+          _result,
+          credential,
+        ) => {
+          if (
+            credential.status ===
+            'revoked'
+          ) {
+            Toast.success(
+              'Credential restored.',
+            )
+          } else {
+            Toast.success(
+              'Credential revoked.',
+            )
+          }
 
-      Toast.success(
-        'Credential deleted.'
-      )
+          await queryClient
+            .invalidateQueries({
+              queryKey: [
+                'credentials',
+              ],
+            })
+        },
 
-      await queryClient.invalidateQueries({
-        queryKey: ['credentials'],
-      })
+      onError:
+        (
+          _error,
+          credential,
+        ) => {
+          if (
+            credential.status ===
+            'revoked'
+          ) {
+            Toast.error(
+              'Unable to restore credential.',
+            )
+          } else {
+            Toast.error(
+              'Unable to revoke credential.',
+            )
+          }
+        },
+    })
 
-    },
+  /*
+  |--------------------------------------------------------------------------
+  | Rows
+  |--------------------------------------------------------------------------
+  */
 
-    onError: () => {
+  const rows =
+    useMemo(
+      () => {
+        const credentials =
+          data?.data ??
+          []
 
-      Toast.error(
-        'Unable to delete credential.'
-      )
+        const term =
+          search
+            .trim()
+            .toLowerCase()
 
-    },
+        if (!term) {
+          return credentials
+        }
 
-  })
+        return credentials.filter(
+          credential => {
+            const number =
+              credential
+                .credential_number
+                ?.toLowerCase()
+                ?? ''
 
-  const rows = useMemo(() => {
+            const type =
+              credential
+                .credential_type
+                ?.toLowerCase()
+                ?? ''
 
-    if (!data?.data) {
-      return []
-    }
+            const status =
+              credential
+                .status
+                ?.toLowerCase()
+                ?? ''
 
-    return data.data.filter((credential: any) =>
-
-      credential.credential_number
-        ?.toLowerCase()
-        .includes(search.toLowerCase())
-
+            return (
+              number.includes(
+                term,
+              ) ||
+              type.includes(
+                term,
+              ) ||
+              status.includes(
+                term,
+              )
+            )
+          },
+        )
+      },
+      [
+        data,
+        search,
+      ],
     )
 
-  }, [data, search])
+  /*
+  |--------------------------------------------------------------------------
+  | Columns
+  |--------------------------------------------------------------------------
+  */
 
-  const columns: GridColDef[] = [
+  const columns:
+    GridColDef[] = [
+      {
+        field:
+          'credential_number',
 
-    {
-      field: 'credential_number',
-      headerName: 'Credential',
-      flex: 2,
-    },
+        headerName:
+          'Credential',
 
-    {
-      field: 'credential_type',
-      headerName: 'Type',
-      flex: 1,
-    },
+        flex:
+          2,
+      },
 
-    {
-      field: 'status',
-      headerName: 'Status',
-      flex: 1,
-    },
+      {
+        field:
+          'credential_type',
 
-  ]
+        headerName:
+          'Type',
 
-  if (isLoading) {
-    return <AppSkeleton />
+        flex:
+          1,
+      },
+
+      {
+        field:
+          'status',
+
+        headerName:
+          'Status',
+
+        flex:
+          1,
+      },
+    ]
+
+  /*
+  |--------------------------------------------------------------------------
+  | Preview
+  |--------------------------------------------------------------------------
+  */
+
+  async function handlePreview(
+    credential:
+      Credential,
+  ) {
+    try {
+      await previewCredential(
+        credential.uuid,
+      )
+    } catch (
+      error
+    ) {
+      console.error(
+        error,
+      )
+
+      Toast.error(
+        'Unable to preview credential.',
+      )
+    }
   }
 
-  if (rows.length === 0) {
+  /*
+  |--------------------------------------------------------------------------
+  | Download
+  |--------------------------------------------------------------------------
+  */
 
+  async function handleDownload(
+    credential:
+      Credential,
+  ) {
+    try {
+      await downloadCredential(
+        credential.uuid,
+        credential
+          .credential_number,
+      )
+    } catch (
+      error
+    ) {
+      console.error(
+        error,
+      )
+
+      Toast.error(
+        'Unable to download credential.',
+      )
+    }
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Lifecycle Confirmation
+  |--------------------------------------------------------------------------
+  */
+
+  function requestLifecycleAction(
+    credential:
+      Credential,
+  ) {
+    setSelectedCredential(
+      credential,
+    )
+
+    setConfirmOpen(
+      true,
+    )
+  }
+
+  function closeConfirmation() {
+    if (
+      lifecycleMutation
+        .isPending
+    ) {
+      return
+    }
+
+    setConfirmOpen(
+      false,
+    )
+
+    setSelectedCredential(
+      null,
+    )
+  }
+
+  function confirmLifecycleAction() {
+    if (
+      !selectedCredential
+    ) {
+      return
+    }
+
+    lifecycleMutation.mutate(
+      selectedCredential,
+      {
+        onSuccess: () => {
+          setConfirmOpen(
+            false,
+          )
+
+          setSelectedCredential(
+            null,
+          )
+        },
+      },
+    )
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Loading
+  |--------------------------------------------------------------------------
+  */
+
+  if (isLoading) {
     return (
+      <AppSkeleton />
+    )
+  }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Empty
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    rows.length ===
+    0
+  ) {
+    return (
       <PageContainer
         title="Credentials"
         subtitle="Issue and manage credentials"
         buttonText="Issue Credential"
-        onAdd={() => setCreateOpen(true)}
+        onAdd={() =>
+          setCreateOpen(
+            true,
+          )
+        }
       >
-
         <SearchBar
-          value={search}
-          onChange={setSearch}
+          value={
+            search
+          }
+          onChange={
+            setSearch
+          }
         />
 
         <EmptyState
           title="No Credentials"
-          subtitle="Issue your first credential."
-          button="Issue Credential"
-          onClick={() => setCreateOpen(true)}
-        />
-
-        <CredentialDialog
-          open={createOpen}
-          onClose={() =>
-            setCreateOpen(false)
+          subtitle={
+            search
+              ? 'No credentials match your search.'
+              : 'Issue your first credential.'
+          }
+          button={
+            search
+              ? undefined
+              : 'Issue Credential'
+          }
+          onClick={
+            search
+              ? undefined
+              : () =>
+                  setCreateOpen(
+                    true,
+                  )
           }
         />
 
+        <CredentialDialog
+          open={
+            createOpen
+          }
+          onClose={() =>
+            setCreateOpen(
+              false,
+            )
+          }
+        />
       </PageContainer>
-
     )
-
   }
 
-  return (
+  /*
+  |--------------------------------------------------------------------------
+  | Page
+  |--------------------------------------------------------------------------
+  */
 
+  const restoring =
+    selectedCredential
+      ?.status ===
+    'revoked'
+
+  return (
     <PageContainer
       title="Credentials"
       subtitle="Issue and manage credentials"
       buttonText="Issue Credential"
-      onAdd={() => setCreateOpen(true)}
+      onAdd={() =>
+        setCreateOpen(
+          true,
+        )
+      }
     >
-
       <SearchBar
-        value={search}
-        onChange={setSearch}
+        value={
+          search
+        }
+        onChange={
+          setSearch
+        }
       />
 
       <AppDataGrid
-        rows={rows}
-        columns={columns}
-
-        onPreview={(credential) =>
-          previewCredential(
-            credential.uuid
-          )
+        rows={
+          rows
+        }
+        columns={
+          columns
         }
 
-        onDownload={(credential) =>
-          downloadCredential(
-            credential.uuid
-          )
+        onPreview={
+          credential =>
+            void handlePreview(
+              credential,
+            )
         }
 
-        onEdit={(credential) =>
-          console.log(credential)
+        onDownload={
+          credential =>
+            void handleDownload(
+              credential,
+            )
         }
 
-        onDelete={(credential) => {
+        /*
+         * No Edit action.
+         *
+         * Issued credential identity,
+         * participant, program and
+         * immutable Fabric snapshot
+         * should not be rewritten.
+         */
 
-          setSelectedCredential(
-            credential
-          )
+        onLifecycleAction={
+          requestLifecycleAction
+        }
 
-          setConfirmOpen(true)
-
-        }}
+        lifecycleActionLabel={
+          credential =>
+            credential.status ===
+            'revoked'
+              ? 'Restore Credential'
+              : 'Revoke Credential'
+        }
       />
 
       <ConfirmDialog
-        open={confirmOpen}
-        title="Delete Credential"
-        message={`Delete "${selectedCredential?.credential_number}"?`}
-        loading={deleteMutation.isPending}
-        onCancel={() => {
+        open={
+          confirmOpen
+        }
 
-          setConfirmOpen(false)
+        title={
+          restoring
+            ? 'Restore Credential'
+            : 'Revoke Credential'
+        }
 
-          setSelectedCredential(null)
+        message={
+          restoring
+            ? `Restore "${selectedCredential?.credential_number ?? ''}"?`
+            : `Revoke "${selectedCredential?.credential_number ?? ''}"? The credential will remain in the audit history but will no longer be valid.`
+        }
 
-        }}
-        onConfirm={() => {
+        loading={
+          lifecycleMutation
+            .isPending
+        }
 
-          if (!selectedCredential) {
-            return
-          }
+        onCancel={
+          closeConfirmation
+        }
 
-          deleteMutation.mutate(
-            selectedCredential.uuid,
-            {
-              onSuccess: () => {
-
-                setConfirmOpen(false)
-
-                setSelectedCredential(null)
-
-              },
-            }
-          )
-
-        }}
-      />
-
-      <CredentialDialog
-        open={createOpen}
-        onClose={() =>
-          setCreateOpen(false)
+        onConfirm={
+          confirmLifecycleAction
         }
       />
 
+      <CredentialDialog
+        open={
+          createOpen
+        }
+        onClose={() =>
+          setCreateOpen(
+            false,
+          )
+        }
+      />
     </PageContainer>
-
   )
-
 }

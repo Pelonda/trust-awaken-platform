@@ -5,14 +5,24 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 
 use App\Presentation\Api\Program\Controllers\ProgramController;
+
 use App\Presentation\Api\Participant\Controllers\ParticipantController;
+use App\Presentation\Api\Participant\Controllers\ParticipantImportController;
+
 use App\Presentation\Api\Session\Controllers\SessionController;
 use App\Presentation\Api\Attendance\Controllers\AttendanceController;
+
+use App\Presentation\Api\ProgramEnrollment\Controllers\ProgramEnrollmentController;
+
 use App\Presentation\Api\CredentialTemplate\Controllers\CredentialTemplateController;
+
 use App\Presentation\Api\Credential\Controllers\CredentialController;
 use App\Presentation\Api\Credential\Controllers\FabricCredentialController;
 use App\Presentation\Api\Credential\Controllers\DownloadCredentialController;
+use App\Presentation\Api\Credential\Controllers\PreviewCredentialController;
+
 use App\Presentation\Api\Verification\Controllers\VerificationController;
+
 use App\Presentation\Api\Dashboard\Controllers\DashboardController;
 use App\Presentation\Api\Dashboard\Controllers\DashboardActivityController;
 
@@ -45,6 +55,12 @@ require __DIR__ . '/api/document.php';
 Route::prefix('v1/programs')
     ->group(function (): void {
 
+        /*
+        |--------------------------------------------------------------------------
+        | Program Collection
+        |--------------------------------------------------------------------------
+        */
+
         Route::get(
             '',
             [
@@ -61,13 +77,140 @@ Route::prefix('v1/programs')
             ]
         );
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Program Enrollments
+        |--------------------------------------------------------------------------
+        |
+        | Enrollment operations are organization-scoped.
+        |
+        | These routes must remain before the generic {uuid}
+        | program routes.
+        |
+        */
+
+        Route::middleware(
+            'organization'
+        )->group(
+            function (): void {
+
+                /*
+                |--------------------------------------------------------------------------
+                | List Enrollments
+                |--------------------------------------------------------------------------
+                */
+
+                Route::get(
+                    '{programUuid}/enrollments',
+                    [
+                        ProgramEnrollmentController::class,
+                        'index',
+                    ]
+                )
+                    ->whereUuid(
+                        'programUuid'
+                    );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Enroll One Participant
+                |--------------------------------------------------------------------------
+                */
+
+                Route::post(
+                    '{programUuid}/enrollments',
+                    [
+                        ProgramEnrollmentController::class,
+                        'store',
+                    ]
+                )
+                    ->whereUuid(
+                        'programUuid'
+                    );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Bulk Enrollment
+                |--------------------------------------------------------------------------
+                |
+                | Keep /bulk before the dynamic enrollment UUID routes.
+                |
+                */
+
+                Route::post(
+                    '{programUuid}/enrollments/bulk',
+                    [
+                        ProgramEnrollmentController::class,
+                        'bulk',
+                    ]
+                )
+                    ->whereUuid(
+                        'programUuid'
+                    );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Update Enrollment
+                |--------------------------------------------------------------------------
+                */
+
+                Route::put(
+                    '{programUuid}/enrollments/{enrollmentUuid}',
+                    [
+                        ProgramEnrollmentController::class,
+                        'update',
+                    ]
+                )
+                    ->whereUuid(
+                        'programUuid'
+                    )
+                    ->whereUuid(
+                        'enrollmentUuid'
+                    );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Delete Enrollment
+                |--------------------------------------------------------------------------
+                */
+
+                Route::delete(
+                    '{programUuid}/enrollments/{enrollmentUuid}',
+                    [
+                        ProgramEnrollmentController::class,
+                        'destroy',
+                    ]
+                )
+                    ->whereUuid(
+                        'programUuid'
+                    )
+                    ->whereUuid(
+                        'enrollmentUuid'
+                    );
+            }
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Program Resource
+        |--------------------------------------------------------------------------
+        */
+
         Route::get(
             '{uuid}',
             [
                 ProgramController::class,
                 'show',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::put(
             '{uuid}',
@@ -75,7 +218,9 @@ Route::prefix('v1/programs')
                 ProgramController::class,
                 'update',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::delete(
             '{uuid}',
@@ -83,7 +228,9 @@ Route::prefix('v1/programs')
                 ProgramController::class,
                 'destroy',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::post(
             '{uuid}/restore',
@@ -91,7 +238,9 @@ Route::prefix('v1/programs')
                 ProgramController::class,
                 'restore',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
     });
 
 
@@ -104,6 +253,12 @@ Route::prefix('v1/programs')
 Route::prefix('v1/participants')
     ->group(function (): void {
 
+        /*
+        |--------------------------------------------------------------------------
+        | Participant Collection
+        |--------------------------------------------------------------------------
+        */
+
         Route::get(
             '',
             [
@@ -120,13 +275,78 @@ Route::prefix('v1/participants')
             ]
         );
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Participant Import
+        |--------------------------------------------------------------------------
+        |
+        | Preview:
+        |
+        | Parses and validates CSV/XLSX/XLS without modifying participant
+        | or enrollment records.
+        |
+        | Commit:
+        |
+        | Creates or updates participants and automatically enrolls each
+        | successfully imported participant into the selected program.
+        |
+        | Import routes MUST remain above the generic {uuid} routes.
+        |
+        */
+
+        Route::middleware(
+            'organization'
+        )->group(
+            function (): void {
+
+                /*
+                |--------------------------------------------------------------------------
+                | Preview Import
+                |--------------------------------------------------------------------------
+                */
+
+                Route::post(
+                    'import/preview',
+                    [
+                        ParticipantImportController::class,
+                        'preview',
+                    ]
+                );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Commit Import
+                |--------------------------------------------------------------------------
+                */
+
+                Route::post(
+                    'import/commit',
+                    [
+                        ParticipantImportController::class,
+                        'commit',
+                    ]
+                );
+            }
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Participant Resource
+        |--------------------------------------------------------------------------
+        */
+
         Route::get(
             '{uuid}',
             [
                 ParticipantController::class,
                 'show',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::put(
             '{uuid}',
@@ -134,7 +354,9 @@ Route::prefix('v1/participants')
                 ParticipantController::class,
                 'update',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::delete(
             '{uuid}',
@@ -142,7 +364,9 @@ Route::prefix('v1/participants')
                 ParticipantController::class,
                 'destroy',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::post(
             '{uuid}/restore',
@@ -150,7 +374,9 @@ Route::prefix('v1/participants')
                 ParticipantController::class,
                 'restore',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
     });
 
 
@@ -185,7 +411,9 @@ Route::prefix('v1/sessions')
                 SessionController::class,
                 'show',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::put(
             '{uuid}',
@@ -193,7 +421,9 @@ Route::prefix('v1/sessions')
                 SessionController::class,
                 'update',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::delete(
             '{uuid}',
@@ -201,7 +431,9 @@ Route::prefix('v1/sessions')
                 SessionController::class,
                 'destroy',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::post(
             '{uuid}/restore',
@@ -209,7 +441,9 @@ Route::prefix('v1/sessions')
                 SessionController::class,
                 'restore',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
     });
 
 
@@ -244,7 +478,9 @@ Route::prefix('v1/attendance')
                 AttendanceController::class,
                 'show',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::put(
             '{uuid}',
@@ -252,7 +488,9 @@ Route::prefix('v1/attendance')
                 AttendanceController::class,
                 'update',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::delete(
             '{uuid}',
@@ -260,7 +498,9 @@ Route::prefix('v1/attendance')
                 AttendanceController::class,
                 'destroy',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::post(
             '{uuid}/restore',
@@ -268,7 +508,9 @@ Route::prefix('v1/attendance')
                 AttendanceController::class,
                 'restore',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
     });
 
 
@@ -335,7 +577,9 @@ Route::prefix('v1/credential-templates')
                 DocumentAssetController::class,
                 'destroy',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
 
         /*
@@ -366,7 +610,9 @@ Route::prefix('v1/credential-templates')
                 CredentialTemplateController::class,
                 'show',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::put(
             '{uuid}',
@@ -374,7 +620,9 @@ Route::prefix('v1/credential-templates')
                 CredentialTemplateController::class,
                 'update',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::delete(
             '{uuid}',
@@ -382,7 +630,9 @@ Route::prefix('v1/credential-templates')
                 CredentialTemplateController::class,
                 'destroy',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::post(
             '{uuid}/restore',
@@ -390,7 +640,9 @@ Route::prefix('v1/credential-templates')
                 CredentialTemplateController::class,
                 'restore',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
     });
 
 
@@ -399,14 +651,19 @@ Route::prefix('v1/credential-templates')
 | Credential API
 |--------------------------------------------------------------------------
 |
-| IMPORTANT:
-|
-| issue-fabric is a static route and MUST remain above {uuid}.
+| Static and specialized routes are kept before the generic {uuid}
+| resource routes.
 |
 */
 
 Route::prefix('v1/credentials')
     ->group(function (): void {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Credential Collection
+        |--------------------------------------------------------------------------
+        */
 
         Route::get(
             '',
@@ -415,12 +672,6 @@ Route::prefix('v1/credentials')
                 'index',
             ]
         );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Legacy / General Credential Creation
-        |--------------------------------------------------------------------------
-        */
 
         Route::post(
             '',
@@ -436,13 +687,8 @@ Route::prefix('v1/credentials')
         | Fabric Credential Issuance
         |--------------------------------------------------------------------------
         |
-        | New Fabric Studio credentials use:
-        |
-        | document_template_id
-        |
-        | Legacy credentials continue using:
-        |
-        | template_id
+        | Fabric Studio credentials use document_template_id.
+        | Legacy credentials continue using template_id.
         |
         */
 
@@ -457,7 +703,55 @@ Route::prefix('v1/credentials')
 
         /*
         |--------------------------------------------------------------------------
-        | Credential UUID Routes
+        | Credential Documents
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '{uuid}/preview',
+            PreviewCredentialController::class
+        )->whereUuid(
+            'uuid'
+        );
+
+        Route::get(
+            '{uuid}/download',
+            DownloadCredentialController::class
+        )->whereUuid(
+            'uuid'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Credential Lifecycle
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post(
+            '{uuid}/revoke',
+            [
+                CredentialController::class,
+                'revoke',
+            ]
+        )->whereUuid(
+            'uuid'
+        );
+
+        Route::post(
+            '{uuid}/restore',
+            [
+                CredentialController::class,
+                'restore',
+            ]
+        )->whereUuid(
+            'uuid'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Credential Resource
         |--------------------------------------------------------------------------
         */
 
@@ -467,7 +761,9 @@ Route::prefix('v1/credentials')
                 CredentialController::class,
                 'show',
             ]
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
 
         Route::put(
             '{uuid}',
@@ -475,28 +771,9 @@ Route::prefix('v1/credentials')
                 CredentialController::class,
                 'update',
             ]
-        )->whereUuid('uuid');
-
-        Route::post(
-            '{uuid}/revoke',
-            [
-                CredentialController::class,
-                'revoke',
-            ]
-        )->whereUuid('uuid');
-
-        Route::post(
-            '{uuid}/restore',
-            [
-                CredentialController::class,
-                'restore',
-            ]
-        )->whereUuid('uuid');
-
-        Route::get(
-            '{uuid}/download',
-            DownloadCredentialController::class
-        )->whereUuid('uuid');
+        )->whereUuid(
+            'uuid'
+        );
     });
 
 
@@ -547,13 +824,100 @@ Route::prefix('v1/dashboard')
 | Document Studio Template API
 |--------------------------------------------------------------------------
 |
-| Fabric Document Studio currently uses:
+| Tenant templates:
 |
 | /api/document-templates
 |
+| Professional system library:
+|
+| /api/document-templates/library
+|
 */
 
-Route::apiResource(
-    'document-templates',
-    DocumentTemplateController::class
-);
+Route::prefix('document-templates')
+    ->group(function (): void {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Professional Template Library
+        |--------------------------------------------------------------------------
+        |
+        | These MUST remain above the dynamic {document_template} route.
+        |
+        */
+
+        Route::get(
+            'library',
+            [
+                DocumentTemplateController::class,
+                'library',
+            ]
+        );
+
+        Route::post(
+            '{id}/use',
+            [
+                DocumentTemplateController::class,
+                'useTemplate',
+            ]
+        )->whereNumber(
+            'id'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tenant Templates
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '',
+            [
+                DocumentTemplateController::class,
+                'index',
+            ]
+        );
+
+        Route::post(
+            '',
+            [
+                DocumentTemplateController::class,
+                'store',
+            ]
+        );
+
+        Route::get(
+            '{document_template}',
+            [
+                DocumentTemplateController::class,
+                'show',
+            ]
+        )->whereNumber(
+            'document_template'
+        );
+
+        Route::match(
+            [
+                'PUT',
+                'PATCH',
+            ],
+            '{document_template}',
+            [
+                DocumentTemplateController::class,
+                'update',
+            ]
+        )->whereNumber(
+            'document_template'
+        );
+
+        Route::delete(
+            '{document_template}',
+            [
+                DocumentTemplateController::class,
+                'destroy',
+            ]
+        )->whereNumber(
+            'document_template'
+        );
+    });
